@@ -26,7 +26,7 @@ public class TeachMod : Mod
         base.Load();
     }
 
-    #region ModÁÐ±íµã»÷ÊÂ¼þ
+    #region Modåˆ—è¡¨ç‚¹å‡»äº‹ä»¶
     //Terraria.ModLoader.UI.UIModItem
     //      public override void MouseOut(UIMouseEvent evt)
     //      public override void MouseOver(UIMouseEvent evt)
@@ -74,11 +74,11 @@ public class TeachMod : Mod
 
     private static void OnClick(UIMouseEvent ume, UIElement uie)
     {
-        Logging.PublicLogger.Debug("µã»÷£¡");
+        Logging.PublicLogger.Debug("ç‚¹å‡»ï¼");
     }
     #endregion
 
-    #region ÉÌµêµ¥´Î¹ºÂòÊýÁ¿
+    #region å•†åº—å•æ¬¡è´­ä¹°æ•°é‡
     public static void ShopGetCount()
     {
         var methodInfo = typeof(ItemSlot).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).FirstOrDefault(f => f.Name == "HandleShopSlot")!;
