@@ -1,0 +1,3 @@
+displayName = TeachMod
+author = TownNPC
+version = 0.1
