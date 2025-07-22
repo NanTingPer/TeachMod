@@ -5,6 +5,11 @@ Mods: {
 				DisplayName: Immemp Accessory
 				Tooltip: ""
 			}
+
+			TileCopyItem: {
+				DisplayName: Tile Copy Item
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -25,5 +30,7 @@ Mods: {
 				}
 			}
 		}
+
+		Projectiles.CopyAIStyle.DisplayName: Copy A I Style
 	}
 }
