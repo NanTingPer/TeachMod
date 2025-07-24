@@ -1,14 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using System.Collections.Generic;
-using System.Text.Json;
+using System.Linq;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
+using Terraria.IO;
 using Terraria.ModLoader;
-using Terraria.ObjectData;
 
 namespace TeachMod.Items.TileCopys;
 /// <summary>
@@ -45,18 +44,45 @@ public class TileCopyItem : ModItem
             TileDataSave = GetTiles(_leftPoint, _rightPoint);
         } else if(_step == 3) {
             #region 创建结构
-            foreach (var tileData in TileDataSave) {
-                var createPos = Main.MouseWorld.ToTileCoordinates16() + tileData.Point;
-                WorldGen.PlaceTile(createPos.X, createPos.Y, tileData.TileType.Type);
-                WorldGen.PlaceWall(createPos.X, createPos.Y, tileData.WallType.Type);
 
-                #region 修改TileWallWire
-                //WordGen.SlopeTile 但是不会同步
-                TileGetData.SetTileWallData(createPos, tileData.Data);
-                //WorldGen.SlopeTile(createPos.X, createPos.Y, (int)tile.Slope);
-                #endregion
-                WorldGen.SquareTileFrame(createPos.X, createPos.Y, true);
-                WorldGen.SquareWallFrame(createPos.X, createPos.Y, true);
+            //门需要额外处理 还有很多特殊物块都是这样
+            //傀儡等需要依附的方块需要从下往上生成
+            //藤蔓等需要从上往下生成
+            var tile = TileDataSave.Where(f =>
+                    f.TileType.Type != TileID.ClosedDoor &&
+                    f.TileType.Type != TileID.OpenDoor)
+                .OrderByDescending(f => f.Point.Y)
+                .AsEnumerable();
+
+            var door = TileDataSave.Except(tile);
+
+            PlaceTile(tile);
+            PlaceDoor(door);
+
+            static void PlaceTile(IEnumerable<SaveTileData> tileDataSave)
+            {
+                foreach (var setdata in tileDataSave) {
+                    var createPos = Main.MouseWorld.ToTileCoordinates16() + setdata.Point;
+                    if (WorldGen.InWorld(createPos.X, createPos.Y) && !Main.tile[createPos].HasTile) {
+                        //WorldGen.PlaceTile(createPos.X, createPos.Y, setdata.TileType.Type);
+                        TileGetData.GetTileType(createPos.X, createPos.Y).Type = setdata.TileType.Type;
+                        WorldGen.PlaceWall(createPos.X, createPos.Y, setdata.WallType.Type);
+                        TileGetData.SetTileWallData(createPos, setdata.Data);
+                        WorldGen.SquareTileFrame(createPos.X, createPos.Y, true);
+                        WorldGen.SquareWallFrame(createPos.X, createPos.Y, true);
+                    }
+                }
+            }
+
+            static void PlaceDoor(IEnumerable<SaveTileData> doors)
+            {
+                foreach (var tileData in doors) {
+                    var createPos = Main.MouseWorld.ToTileCoordinates16() + tileData.Point;
+                    if (WorldGen.InWorld(createPos.X, createPos.Y) && !Main.tile[createPos].HasTile) {
+                        WorldGen.PlaceDoor(createPos.X, createPos.Y, tileData.TileType.Type);
+                        //WorldGen.SpreadGrass(createPos.X, createPos.Y, 0, 2);
+                    }
+                }
             }
             #endregion
         }
@@ -64,7 +90,7 @@ public class TileCopyItem : ModItem
         if(_step == 4) {
             _step = 0;
         }
-        Main.NewText(_step);
+        //Main.NewText(_step);
         return base.UseItem(player);
     }
 
@@ -137,7 +163,7 @@ public class TileCopyItemPlayerLayer : PlayerDrawLayer
             var tiles = moditem.TileDataSave;
             SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone, null, Main.GameViewMatrix.ZoomMatrix);
             foreach (var tileData in tiles) {
-                var drawVector = tileData.Point.ToWorldCoordinates() + Main.MouseWorld - Main.screenPosition;
+                var drawVector = ((tileData.Point.ToWorldCoordinates() + Main.MouseWorld) - Main.screenPosition.ToTileCoordinates16().ToWorldCoordinates() - new Vector2(8f, 8f)) - new Point16(0, 0).ToWorldCoordinates();
                 var value = new Rectangle(tileData.Data.TileFrameX, tileData.Data.TileFrameY, 16, 16);
                 SpriteBatch.Draw(TextureAssets.Tile[tileData.TileType.Type].Value, drawVector, value, Color.White * 0.5f, 0f, default, 1f, SpriteEffects.None, 1f);
             }

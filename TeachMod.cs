@@ -7,7 +7,6 @@ using MonoMod.RuntimeDetour;
 using System;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using TeachMod.UIs;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
