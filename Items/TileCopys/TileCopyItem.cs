@@ -2,13 +2,15 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ObjectData;
 
-namespace TeachMod.Items;
+namespace TeachMod.Items.TileCopys;
 /// <summary>
 /// 物块拷贝
 /// </summary>
@@ -28,25 +30,33 @@ public class TileCopyItem : ModItem
     public int _step = 0;
     public Vector2 _leftPoint = Vector2.Zero;
     public Vector2 _rightPoint = Vector2.Zero;
-    public Dictionary<Point16, Tile> TileDataSave = [];
+    public List<SaveTileData> TileDataSave = [];
     public override bool? UseItem(Player player)
     {
         var pos = player.position;
-        if (_step == 0) {
+        if (_step == 0) { //选中左上角
             CombatText.NewText(new Rectangle((int)pos.X, (int)pos.Y, 10, 10), Color.White, "已经选择左上角，请选择右下脚!");
             _leftPoint = Main.MouseWorld.ToTileCoordinates16().ToWorldCoordinates();
-        } else if(_step == 1) {
+        } else if(_step == 1) { //选中右下角
             CombatText.NewText(new Rectangle((int)pos.X, (int)pos.Y, 10, 10), Color.White, "已经选择右下角，再次使用保存!");
             _rightPoint = Main.MouseWorld.ToTileCoordinates16().ToWorldCoordinates();
-        } else if(_step == 2) {
+        } else if(_step == 2) { //获取选中范围内的图格
             CombatText.NewText(new Rectangle((int)pos.X, (int)pos.Y, 10, 10), Color.White, "已经保存选中项，再次使用创建!");
             TileDataSave = GetTiles(_leftPoint, _rightPoint);
         } else if(_step == 3) {
             #region 创建结构
             foreach (var tileData in TileDataSave) {
-                var tile = tileData.Value;
-                var createPos = Main.MouseWorld.ToTileCoordinates16() + tileData.Key;
-                WorldGen.PlaceTile(createPos.X, createPos.Y, tile.TileType, style: (int)tile.BlockType);
+                var createPos = Main.MouseWorld.ToTileCoordinates16() + tileData.Point;
+                WorldGen.PlaceTile(createPos.X, createPos.Y, tileData.TileType.Type);
+                WorldGen.PlaceWall(createPos.X, createPos.Y, tileData.WallType.Type);
+
+                #region 修改TileWallWire
+                //WordGen.SlopeTile 但是不会同步
+                TileGetData.SetTileWallData(createPos, tileData.Data);
+                //WorldGen.SlopeTile(createPos.X, createPos.Y, (int)tile.Slope);
+                #endregion
+                WorldGen.SquareTileFrame(createPos.X, createPos.Y, true);
+                WorldGen.SquareWallFrame(createPos.X, createPos.Y, true);
             }
             #endregion
         }
@@ -59,53 +69,9 @@ public class TileCopyItem : ModItem
     }
 
     public Rectangle _drawRectangle;
-    public static Dictionary<Point16, Tile> GetTiles(Vector2 leftUpPointWorld, Vector2 rightDownPointWorld)
+    private static List<SaveTileData> GetTiles(Vector2 leftUpPointWorld, Vector2 rightDownPointWorld)
     {
-        Dictionary<Point16, Tile> tileDataSave = [];
-        var leftPonit = leftUpPointWorld.ToTileCoordinates16();
-        var rightPoint = rightDownPointWorld.ToTileCoordinates16();
-        var newLeftPoint = new Point16(
-            X: Math.Min(leftPonit.X, rightPoint.X),
-            Y: Math.Min(leftPonit.Y, rightPoint.Y));
-
-        var newRightPoint = new Point16(
-            X: Math.Max(leftPonit.X, rightPoint.X),
-            Y: Math.Max(leftPonit.Y, rightPoint.Y));
-
-        Point16 tarPoint = newRightPoint - newLeftPoint;
-
-        //Tile.SmoothSlope //根据相邻的方块倾斜一个方块
-        //Main.tile[]
-        for (int i = 0; i < tarPoint.X; i++) {
-            for (int j = 0; j < tarPoint.Y; j++) {
-                Point16 tilePoint = newLeftPoint + new Point16(i, j);
-                var tile = Main.tile[tilePoint];
-                //tile.BlockType
-                //tile.Slope
-                if (tile != null && tile.HasTile) {
-                    Main.NewText(TileID.Search.GetName(tile.TileType));
-                    tileDataSave[new Point16(i, j)] = tile;
-                }
-
-                //WorldGen.KillTile(tilePoint.X, tilePoint.Y);
-                //WorldGen.PlaceTile(tilePoint.X, tilePoint.Y, 0);
-                #region WorldGen
-                //TileRunner是替换方块
-                //WorldGen.TileRunner(tilePoint.X, tilePoint.Y, 2, 1, 30);
-
-                //PlaceWall是放墙
-                //WorldGen.PlaceWall(tilePoint.X, tilePoint.Y, 30);
-
-                //Trap陷阱
-                //WorldGen.placeTrap(tilePoint.X, tilePoint.Y, 30);
-
-                //种树
-                //WorldGen.PlaceXmasTree(tilePoint.X, tilePoint.Y, 172);
-                #endregion
-            }
-        }
-
-        return tileDataSave;
+        return TileGetData.GetTiles(leftUpPointWorld, rightDownPointWorld);
     }
 }
 
@@ -171,13 +137,22 @@ public class TileCopyItemPlayerLayer : PlayerDrawLayer
             var tiles = moditem.TileDataSave;
             SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone, null, Main.GameViewMatrix.ZoomMatrix);
             foreach (var tileData in tiles) {
-                var tile = tileData.Value;
-                var drawVector = (tileData.Key.ToWorldCoordinates() + Main.MouseWorld) - Main.screenPosition;
-                var value = new Rectangle(tile.TileFrameX, tile.TileFrameX, 16, 16);
-                SpriteBatch.Draw(TextureAssets.Tile[tileData.Value.TileType].Value, drawVector, value, Color.White * 0.5f, 0f, default, 1f, SpriteEffects.None, 1f);
+                var drawVector = tileData.Point.ToWorldCoordinates() + Main.MouseWorld - Main.screenPosition;
+                var value = new Rectangle(tileData.Data.TileFrameX, tileData.Data.TileFrameY, 16, 16);
+                SpriteBatch.Draw(TextureAssets.Tile[tileData.TileType.Type].Value, drawVector, value, Color.White * 0.5f, 0f, default, 1f, SpriteEffects.None, 1f);
             }
             SpriteBatch.End();
             #endregion
         }
     }
 }
+
+/*
+ *  更多注释
+ *      使用GetData获取注释，可以查看tModLoader的ITileData接口相关实现
+ *      其中TileWallWireStateData是相关图格的数据
+ *      Main.tile虽然可以跟使用二维数组，但其实他只是一维的Array
+ *      而一个tile数据可以同时包含 `墙` `方块` 获取相关信息 可以使用 "WallType" "TileType" 从GetData获取
+ *      
+ *      如何使用GetData如同使用 [x, y] 一般，可看Main.tile[] 如何实现
+ */
