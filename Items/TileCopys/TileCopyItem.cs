@@ -34,6 +34,12 @@ public class TileCopyItem : ModItem
     public List<SaveTileData> TileDataSave = [];
     public override bool? UseItem(Player player)
     {
+        //var tilePos = Main.MouseWorld.ToTileCoordinates16();
+        //var name = TileID.Search.GetName(Main.tile[tilePos].TileType);
+        //Main.NewText("类型: " + Main.tile[tilePos].TileType);
+        //Main.NewText("名称: " + name);
+        //Main.NewText("HashTile: " + Main.tile[tilePos].HasTile);
+        //return true;
         var pos = player.position;
         if (_step == 0) { //选中左上角
             CombatText.NewText(new Rectangle((int)pos.X, (int)pos.Y, 10, 10), Color.White, "已经选择左上角，请选择右下脚!");
@@ -51,9 +57,9 @@ public class TileCopyItem : ModItem
             //傀儡等需要依附的方块需要从下往上生成
             //藤蔓等需要从上往下生成
             var tile = TileDataSave.Where(f =>
-                    f.TileType.Type != TileID.ClosedDoor &&
-                    f.TileType.Type != TileID.OpenDoor &&
-                    f.TileType.Type != TileID.Platforms)
+                       f.TileType.Type != TileID.ClosedDoor
+                    && f.TileType.Type != TileID.OpenDoor
+                    && !TileID.Sets.RoomNeeds.CountsAsTable.Contains(f.TileType.Type))//!TileID.Sets.Platforms[f.TileType.Type]
                 .OrderByDescending(f => f.Point.Y)
                 .AsEnumerable()
                 ;
@@ -64,9 +70,10 @@ public class TileCopyItem : ModItem
                 ;
 
             var platforms = TileDataSave
-                .Where(f => f.TileType.Type == TileID.Platforms)
+                .Where(f => !TileID.Sets.RoomNeeds.CountsAsTable.Contains(f.TileType.Type))//TileID.Sets.Platforms[f.TileType.Type]
                 .ToList()
                 ;
+
 
             var sourcePoint = Main.MouseWorld.ToTileCoordinates16();
             PlaceTile(tile, sourcePoint);
@@ -77,7 +84,10 @@ public class TileCopyItem : ModItem
             {
                 foreach (var setdata in tileDataSave) {
                     var createPos = sourcePoint + setdata.Point;
-                    if (WorldGen.InWorld(createPos.X, createPos.Y) && !Main.tile[createPos].HasTile) {
+                    if (    WorldGen.InWorld(createPos.X, createPos.Y) 
+                        && !Main.tile[createPos].HasTile
+                        && !TileID.Sets.Platforms[setdata.TileType.Type]
+                        ) {
                         //WorldGen.PlaceTile(createPos.X, createPos.Y, setdata.TileType.Type);
                         TileGetData.GetTileType(createPos.X, createPos.Y).Type = setdata.TileType.Type;
                         WorldGen.PlaceWall(createPos.X, createPos.Y, setdata.WallType.Type);
@@ -101,6 +111,8 @@ public class TileCopyItem : ModItem
 
             static void PlaceObject(IEnumerable<SaveTileData> objects, Point16 sourcePoint)
             {
+                objects = objects.OrderBy(f => f.Point.Y);
+
                 foreach (var tileData in objects) {
                     var createPos = sourcePoint + tileData.Point;
                     var tile = new Tile();
@@ -111,15 +123,16 @@ public class TileCopyItem : ModItem
 
                     var toj = new TileObjectData();
                     toj.FullCopyFrom(tileData.TileType.Type);
-                    var ttoj = TileObjectData.GetTileData(tileData.TileType.Type, 0);
+                    //var ttoj = TileObjectData.GetTileData(tileData.TileType.Type, 0);
 
                     if (WorldGen.InWorld(createPos.X, createPos.Y)
                         && !Main.tile[createPos].HasTile
-                        && Main.tile[createPos].TileType != TileID.Platforms
-                        && TileObject.CanPlace(createPos.X, createPos.Y, tileData.TileType.Type, ttoj.Style, 1, out var obj)
+                        && !Main.tile[createPos].HasUnactuatedTile
+                        && TileObject.CanPlace(createPos.X, createPos.Y, tileData.TileType.Type, toj.Style, 1, out var obj)
                         ) {//platforms
                         //WorldGen.PlaceObject(createPos.X, createPos.Y, tileData.TileType.Type);
                         TileObject.Place(obj);
+                        //WorldGen.PlaceTile(createPos.X, createPos.Y, tileData.TileType.Type);
                     }
                 }
 
