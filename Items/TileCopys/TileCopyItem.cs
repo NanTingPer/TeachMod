@@ -2,12 +2,14 @@
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.IO;
 using Terraria.ModLoader;
+using Terraria.ObjectData;
 
 namespace TeachMod.Items.TileCopys;
 /// <summary>
@@ -50,19 +52,31 @@ public class TileCopyItem : ModItem
             //藤蔓等需要从上往下生成
             var tile = TileDataSave.Where(f =>
                     f.TileType.Type != TileID.ClosedDoor &&
-                    f.TileType.Type != TileID.OpenDoor)
+                    f.TileType.Type != TileID.OpenDoor &&
+                    f.TileType.Type != TileID.Platforms)
                 .OrderByDescending(f => f.Point.Y)
-                .AsEnumerable();
+                .AsEnumerable()
+                ;
 
-            var door = TileDataSave.Except(tile);
+            var door = TileDataSave
+                .Except(tile)
+                .Where(f => f.TileType.Type != TileID.Platforms)
+                ;
 
-            PlaceTile(tile);
-            PlaceDoor(door);
+            var platforms = TileDataSave
+                .Where(f => f.TileType.Type == TileID.Platforms)
+                .ToList()
+                ;
 
-            static void PlaceTile(IEnumerable<SaveTileData> tileDataSave)
+            var sourcePoint = Main.MouseWorld.ToTileCoordinates16();
+            PlaceTile(tile, sourcePoint);
+            PlaceDoor(door, sourcePoint);
+            PlaceObject(platforms, sourcePoint);
+
+            static void PlaceTile(IEnumerable<SaveTileData> tileDataSave, Point16 sourcePoint)
             {
                 foreach (var setdata in tileDataSave) {
-                    var createPos = Main.MouseWorld.ToTileCoordinates16() + setdata.Point;
+                    var createPos = sourcePoint + setdata.Point;
                     if (WorldGen.InWorld(createPos.X, createPos.Y) && !Main.tile[createPos].HasTile) {
                         //WorldGen.PlaceTile(createPos.X, createPos.Y, setdata.TileType.Type);
                         TileGetData.GetTileType(createPos.X, createPos.Y).Type = setdata.TileType.Type;
@@ -74,15 +88,41 @@ public class TileCopyItem : ModItem
                 }
             }
 
-            static void PlaceDoor(IEnumerable<SaveTileData> doors)
+            static void PlaceDoor(IEnumerable<SaveTileData> doors, Point16 sourcePoint)
             {
                 foreach (var tileData in doors) {
-                    var createPos = Main.MouseWorld.ToTileCoordinates16() + tileData.Point;
+                    var createPos = sourcePoint + tileData.Point;
                     if (WorldGen.InWorld(createPos.X, createPos.Y) && !Main.tile[createPos].HasTile) {
                         WorldGen.PlaceDoor(createPos.X, createPos.Y, tileData.TileType.Type);
                         //WorldGen.SpreadGrass(createPos.X, createPos.Y, 0, 2);
                     }
                 }
+            }
+
+            static void PlaceObject(IEnumerable<SaveTileData> objects, Point16 sourcePoint)
+            {
+                foreach (var tileData in objects) {
+                    var createPos = sourcePoint + tileData.Point;
+                    var tile = new Tile();
+                    var a = typeof(Tile).GetMethod("active", BindingFlags.Instance | BindingFlags.NonPublic, [typeof(bool)]);
+                    a.Invoke(tile, [true]);
+                    tile.TileType = tileData.TileType.Type;
+                    tile.ResetToType(tileData.TileType.Type);
+
+                    var toj = new TileObjectData();
+                    toj.FullCopyFrom(tileData.TileType.Type);
+                    var ttoj = TileObjectData.GetTileData(tileData.TileType.Type, 0);
+
+                    if (WorldGen.InWorld(createPos.X, createPos.Y)
+                        && !Main.tile[createPos].HasTile
+                        && Main.tile[createPos].TileType != TileID.Platforms
+                        && TileObject.CanPlace(createPos.X, createPos.Y, tileData.TileType.Type, ttoj.Style, 1, out var obj)
+                        ) {//platforms
+                        //WorldGen.PlaceObject(createPos.X, createPos.Y, tileData.TileType.Type);
+                        TileObject.Place(obj);
+                    }
+                }
+
             }
             #endregion
         }
