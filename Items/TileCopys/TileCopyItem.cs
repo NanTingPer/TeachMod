@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
@@ -56,51 +57,61 @@ public class TileCopyItem : ModItem
             //门需要额外处理 还有很多特殊物块都是这样
             //傀儡等需要依附的方块需要从下往上生成
             //藤蔓等需要从上往下生成
-            var tile = TileDataSave.Where(f =>
-                       f.TileType.Type != TileID.ClosedDoor
+            var tile = TileDataSave.Where(f => true
+                      /* f.TileType.Type != TileID.ClosedDoor
                     && f.TileType.Type != TileID.OpenDoor
-                    && !TileID.Sets.RoomNeeds.CountsAsTable.Contains(f.TileType.Type))//!TileID.Sets.Platforms[f.TileType.Type]
-                .OrderByDescending(f => f.Point.Y)
+                    && !TileID.Sets.RoomNeeds.CountsAsTable.Contains(f.TileType.Type)*/)//!TileID.Sets.Platforms[f.TileType.Type]
+                .OrderBy/*ByDescending*/(f => f.Point.Y)
                 .AsEnumerable()
                 ;
 
             var door = TileDataSave
-                .Except(tile)
-                .Where(f => f.TileType.Type != TileID.Platforms)
+                .Where(f => TileID.Sets.RoomNeeds.CountsAsDoor.Contains(f.TileType.Type))
                 ;
 
             var platforms = TileDataSave
-                .Where(f => !TileID.Sets.RoomNeeds.CountsAsTable.Contains(f.TileType.Type))//TileID.Sets.Platforms[f.TileType.Type]
-                .ToList()
+                .Where(f => TileID.Sets.RoomNeeds.CountsAsTable.Contains(f.TileType.Type))//TileID.Sets.Platforms[f.TileType.Type]
                 ;
 
+            //tile = tile.Select(f => {
+            //    if (door.Contains(f) || platforms.Contains(f)) {
+            //        f.TileType.Type = -1;
+            //    }
+            //    return f;
+            //});
 
             var sourcePoint = Main.MouseWorld.ToTileCoordinates16();
-            PlaceTile(tile, sourcePoint);
-            PlaceDoor(door, sourcePoint);
-            PlaceObject(platforms, sourcePoint);
+            _ = Task.Run(async () => {
+                await PlaceTile(tile, sourcePoint);
+                await PlaceDoor(door, sourcePoint);
+                await PlaceObject(platforms, sourcePoint);
+            });
+            
+            
+            
 
-            static void PlaceTile(IEnumerable<SaveTileData> tileDataSave, Point16 sourcePoint)
+            static async Task PlaceTile(IEnumerable<SaveTileData> tileDataSave, Point16 sourcePoint)
             {
                 foreach (var setdata in tileDataSave) {
+                    await Task.Delay(100);
                     var createPos = sourcePoint + setdata.Point;
-                    if (    WorldGen.InWorld(createPos.X, createPos.Y) 
-                        && !Main.tile[createPos].HasTile
-                        && !TileID.Sets.Platforms[setdata.TileType.Type]
-                        ) {
-                        //WorldGen.PlaceTile(createPos.X, createPos.Y, setdata.TileType.Type);
-                        TileGetData.GetTileType(createPos.X, createPos.Y).Type = setdata.TileType.Type;
-                        WorldGen.PlaceWall(createPos.X, createPos.Y, setdata.WallType.Type);
-                        TileGetData.SetTileWallData(createPos, setdata.Data);
-                        WorldGen.SquareTileFrame(createPos.X, createPos.Y, true);
+                    if (WorldGen.InWorld(createPos.X, createPos.Y)) {
+                        TileGetData.GetWallType(createPos).Type = setdata.WallType.Type;
+                        if(!Main.tile[createPos].HasTile &&
+                           !TileID.Sets.Platforms[setdata.TileType.Type]){
+                            TileGetData.GetTileType(createPos.X, createPos.Y).Type = setdata.TileType.Type;
+                            TileGetData.SetTileWallData(createPos, setdata.Data);
+                            WorldGen.SquareTileFrame(createPos.X, createPos.Y, true);
+                        }
                         WorldGen.SquareWallFrame(createPos.X, createPos.Y, true);
                     }
                 }
             }
 
-            static void PlaceDoor(IEnumerable<SaveTileData> doors, Point16 sourcePoint)
+            static async Task PlaceDoor(IEnumerable<SaveTileData> doors, Point16 sourcePoint)
             {
                 foreach (var tileData in doors) {
+                    await Task.Delay(100);
                     var createPos = sourcePoint + tileData.Point;
                     if (WorldGen.InWorld(createPos.X, createPos.Y) && !Main.tile[createPos].HasTile) {
                         WorldGen.PlaceDoor(createPos.X, createPos.Y, tileData.TileType.Type);
@@ -109,11 +120,12 @@ public class TileCopyItem : ModItem
                 }
             }
 
-            static void PlaceObject(IEnumerable<SaveTileData> objects, Point16 sourcePoint)
+            static async Task PlaceObject(IEnumerable<SaveTileData> objects, Point16 sourcePoint)
             {
                 objects = objects.OrderBy(f => f.Point.Y);
 
                 foreach (var tileData in objects) {
+                    await Task.Delay(100);
                     var createPos = sourcePoint + tileData.Point;
                     var tile = new Tile();
                     var a = typeof(Tile).GetMethod("active", BindingFlags.Instance | BindingFlags.NonPublic, [typeof(bool)]);
@@ -124,15 +136,13 @@ public class TileCopyItem : ModItem
                     var toj = new TileObjectData();
                     toj.FullCopyFrom(tileData.TileType.Type);
                     //var ttoj = TileObjectData.GetTileData(tileData.TileType.Type, 0);
-
                     if (WorldGen.InWorld(createPos.X, createPos.Y)
                         && !Main.tile[createPos].HasTile
-                        && !Main.tile[createPos].HasUnactuatedTile
                         && TileObject.CanPlace(createPos.X, createPos.Y, tileData.TileType.Type, toj.Style, 1, out var obj)
                         ) {//platforms
                         //WorldGen.PlaceObject(createPos.X, createPos.Y, tileData.TileType.Type);
                         TileObject.Place(obj);
-                        //WorldGen.PlaceTile(createPos.X, createPos.Y, tileData.TileType.Type);
+                        Main.NewText(TileID.Search.GetName(tileData.TileType.Type));
                     }
                 }
 
@@ -182,7 +192,8 @@ public class TileCopyItemPlayerLayer : PlayerDrawLayer
 
     protected override void Draw(ref PlayerDrawSet drawInfo)
     {
-        var moditem = drawInfo.drawPlayer.HeldItem.ModItem as TileCopyItem;
+        if (drawInfo.drawPlayer.HeldItem.ModItem is not TileCopyItem moditem)
+            return;
         var _step = moditem._step;
 
         //!=0说明已经按下了一下鼠标
@@ -216,6 +227,8 @@ public class TileCopyItemPlayerLayer : PlayerDrawLayer
             var tiles = moditem.TileDataSave;
             SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone, null, Main.GameViewMatrix.ZoomMatrix);
             foreach (var tileData in tiles) {
+                if (!tileData.Data.HasTile)
+                    continue;
                 var drawVector = ((tileData.Point.ToWorldCoordinates() + Main.MouseWorld) - Main.screenPosition.ToTileCoordinates16().ToWorldCoordinates() - new Vector2(8f, 8f)) - new Point16(0, 0).ToWorldCoordinates();
                 var value = new Rectangle(tileData.Data.TileFrameX, tileData.Data.TileFrameY, 16, 16);
                 SpriteBatch.Draw(TextureAssets.Tile[tileData.TileType.Type].Value, drawVector, value, Color.White * 0.5f, 0f, default, 1f, SpriteEffects.None, 1f);
@@ -233,5 +246,5 @@ public class TileCopyItemPlayerLayer : PlayerDrawLayer
  *      Main.tile虽然可以跟使用二维数组，但其实他只是一维的Array
  *      而一个tile数据可以同时包含 `墙` `方块` 获取相关信息 可以使用 "WallType" "TileType" 从GetData获取
  *      
- *      如何使用GetData如同使用 [x, y] 一般，可看Main.tile[] 如何实现
+ *      如何使用GetData如同使用 [x, y] 一般，可看Main.tile 如何实现
  */

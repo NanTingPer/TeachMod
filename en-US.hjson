@@ -10,6 +10,16 @@ Mods: {
 				DisplayName: Tile Copy Item
 				Tooltip: ""
 			}
+
+			TileCopyItemTwo: {
+				DisplayName: Tile Copy Item Two
+				Tooltip: ""
+			}
+
+			TileCopyItemType: {
+				DisplayName: Tile Copy Item Type
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -32,5 +42,31 @@ Mods: {
 		}
 
 		Projectiles.CopyAIStyle.DisplayName: Copy A I Style
+
+		Configs: {
+			ButtonConfig: {
+				DisplayName: Button Config
+
+				位置重置: {
+					Label: 重置按钮位置
+					Tooltip: 设置为 true 以将按钮重置到其默认位置。
+				}
+
+				位置存储: {
+					Label: 位置存储
+					Tooltip: ""
+				}
+
+				PosX: {
+					Label: Pos X
+					Tooltip: ""
+				}
+
+				PosY: {
+					Label: Pos Y
+					Tooltip: ""
+				}
+			}
+		}
 	}
 }
