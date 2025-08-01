@@ -5,6 +5,7 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using TeachMod.UIs;
@@ -23,6 +24,14 @@ public class TeachMod : Mod
     {
         ModItemUIMouseHook();
         base.Load();
+    }
+
+    public override void HandlePacket(BinaryReader reader, int whoAmI)
+    {
+        var slot = reader.ReadInt32();
+        var newFavoritedStatu = reader.ReadBoolean();
+        Main.player[whoAmI].inventory[slot].favorited = newFavoritedStatu;
+        base.HandlePacket(reader, whoAmI);
     }
 
     #region Mod列表点击事件
