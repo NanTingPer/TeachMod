@@ -8,7 +8,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace TeachMod.NPC;
+namespace TeachMod.NPCS;
 
 [AutoloadHead]
 public class TestTownNPC : ModNPC
