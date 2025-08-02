@@ -51,8 +51,7 @@ public class NoNPCSpawn
     }
     #endregion
 
-    #region IL钩子
-    //OverrideLeftClick
+    #region 钩子
     [ModuleInitializer]
     internal static void ILHookItemSlot()
     {
@@ -66,7 +65,7 @@ public class NoNPCSpawn
         if (Main.netMode == NetmodeID.MultiplayerClient) {
             var newFavoritedStatu = inv[slot].favorited;
             if (oldFavoritedStatu != newFavoritedStatu) {
-                var packet = ModLoader.GetMod(nameof(NoNPCSpawn)).GetPacket();
+                var packet = ModLoader.GetMod(nameof(TeachMod)).GetPacket();
                 packet.Write(slot);
                 packet.Write(newFavoritedStatu);
                 packet.Send();
@@ -82,14 +81,29 @@ public class NoNPCSpawn
 /// </summary>
 public class NoNPCSpawnPlayer : ModPlayer
 {
-    public override void PlayerConnect()
+    private volatile List<Action> updateExter = [];
+
+    public override void PostUpdate()
+    {
+        foreach (var action in updateExter) {
+            action.Invoke();
+        }
+        updateExter.Clear();
+        base.PostUpdate();
+    }
+
+    public override void OnEnterWorld()
+    {
+        updateExter.Add(SendItemFavorited);
+        base.OnEnterWorld();
+    }
+    private void SendItemFavorited()
     {
         if (Main.netMode == NetmodeID.MultiplayerClient) {
             var packet = ModLoader.GetMod(nameof(NoNPCSpawn)).GetPacket();
             List<int> items = [];
             for (int i = 0; i < Player.inventory.Length; i++) {
-                var yes = NoNPCSpawn.FavoritedItem(Player.inventory[i]);
-                if (yes) {
+                if (NoNPCSpawn.FavoritedItem(Player.inventory[i])) {
                     items.Add(i);
                 }
             }
@@ -99,6 +113,5 @@ public class NoNPCSpawnPlayer : ModPlayer
                 packet.Send();
             });
         }
-        base.PlayerConnect();
     }
 }

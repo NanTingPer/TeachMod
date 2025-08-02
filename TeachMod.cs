@@ -8,9 +8,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using TeachMod.Issues;
 using TeachMod.UIs;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 
@@ -28,9 +30,13 @@ public class TeachMod : Mod
 
     public override void HandlePacket(BinaryReader reader, int whoAmI)
     {
-        var slot = reader.ReadInt32();
-        var newFavoritedStatu = reader.ReadBoolean();
-        Main.player[whoAmI].inventory[slot].favorited = newFavoritedStatu;
+        _ = nameof(NoNPCSpawnPlayer.PlayerConnect);
+        _ = nameof(NoNPCSpawn.ILHookItemSlot);
+        if (Main.netMode == NetmodeID.Server) {
+            var slot = reader.ReadInt32();
+            var newFavoritedStatu = reader.ReadBoolean();
+            Main.player[whoAmI].inventory[slot].favorited = newFavoritedStatu;
+        }
         base.HandlePacket(reader, whoAmI);
     }
 
@@ -115,6 +121,7 @@ public class TeachMod : Mod
     #endregion
 }
 
+[Autoload(Side = ModSide.Client)]
 public class ListUISystem : ModSystem
 {
     private static UIState? _localiListState;
@@ -137,10 +144,11 @@ public class ListUISystem : ModSystem
     private static Hook UIModsDrawHook;
     static ListUISystem()
     {
-        Main.QueueMainThreadAction(() => _spriteBatch = new SpriteBatch(Main.graphics.GraphicsDevice));
-
         var drawMethod = UIModsType.GetMethod("Draw")!;
         UIModsDrawHook = new Hook(drawMethod, UIModsDrawHookDel);
+        if (Main.netMode == NetmodeID.Server)
+            return;
+        Main.QueueMainThreadAction(() => _spriteBatch = new SpriteBatch(Main.graphics.GraphicsDevice));
     }
 
     public override void Load()

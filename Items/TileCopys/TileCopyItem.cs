@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using Terraria;
@@ -160,18 +161,36 @@ public class TileCopyItem : ModItem
     }
 }
 
+
+#pragma warning disable CA2255
+[Autoload(Side = ModSide.Client)]
 public class TileCopyItemPlayerLayer : PlayerDrawLayer
 {
-    public static SpriteBatch SpriteBatch;
-    public static Texture2D _white;
-    static TileCopyItemPlayerLayer()
+    private static SpriteBatch spriteBatch;
+    private static Texture2D white;
+    public static SpriteBatch SpriteBatch
     {
-        //绘图相关必须在主线程实例化 / 调用
-        Main.QueueMainThreadAction(() => {
-            _white = new Texture2D(Main.instance.GraphicsDevice, 1, 1);
-            _white.SetData([Color.White]);
-            SpriteBatch = new SpriteBatch(Main.instance.GraphicsDevice);
-        });
+        get
+        {
+            if(spriteBatch == null && white == null) {
+                Main.QueueMainThreadAction(() => {
+                    white = new Texture2D(Main.instance.GraphicsDevice, 1, 1);
+                    white.SetData([Color.White]);
+                    spriteBatch = new SpriteBatch(Main.instance.GraphicsDevice);
+                });
+            }
+            return spriteBatch;
+        }
+    }
+    public static Texture2D White
+    {
+        get
+        {
+            if(spriteBatch == null) {
+                _ = SpriteBatch;
+            }
+            return white;
+        }
     }
     public override bool IsHeadLayer => false;
     public override bool GetDefaultVisibility(PlayerDrawSet drawInfo)
@@ -188,7 +207,7 @@ public class TileCopyItemPlayerLayer : PlayerDrawLayer
 
     protected override void Draw(ref PlayerDrawSet drawInfo)
     {
-        if (drawInfo.drawPlayer.HeldItem.ModItem is not TileCopyItem moditem)
+        if (spriteBatch == null || drawInfo.drawPlayer.HeldItem.ModItem is not TileCopyItem moditem)
             return;
         var _step = moditem._step;
 
@@ -212,7 +231,7 @@ public class TileCopyItemPlayerLayer : PlayerDrawLayer
             //可以使用 状态拷贝 (懒了)
             //https://github.com/stormytuna/FishUtils/blob/main/DataStructures/SpriteBatchParams.cs
             SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone, null, Main.GameViewMatrix.ZoomMatrix);
-            SpriteBatch.Draw(_white, rectangle, null, Color.White * 0.5f, 0f, Vector2.Zero, SpriteEffects.None, 1f);
+            SpriteBatch.Draw(White, rectangle, null, Color.White * 0.5f, 0f, Vector2.Zero, SpriteEffects.None, 1f);
             SpriteBatch.End();
             #endregion
 
