@@ -20,6 +20,11 @@ Mods: {
 				DisplayName: Tile Copy Item Type
 				Tooltip: ""
 			}
+
+			CountSummaryItem: {
+				DisplayName: Count Summary Item
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -41,7 +46,10 @@ Mods: {
 			}
 		}
 
-		Projectiles.CopyAIStyle.DisplayName: Copy A I Style
+		Projectiles: {
+			CopyAIStyle.DisplayName: Copy A I Style
+			CountSummaryProjectile.DisplayName: Count Summary Projectile
+		}
 
 		Configs: {
 			ButtonConfig: {
@@ -66,6 +74,13 @@ Mods: {
 					Label: Pos Y
 					Tooltip: ""
 				}
+			}
+		}
+
+		Buffs: {
+			CountSummaryBuff: {
+				DisplayName: Count Summary Buff
+				Description: Mods.TeachMod.Buffs.CountSummaryBuff.Description
 			}
 		}
 	}

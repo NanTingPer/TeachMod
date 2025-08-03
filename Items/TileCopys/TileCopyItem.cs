@@ -1,19 +1,16 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 using Terraria;
-using Terraria.DataStructures;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ObjectData;
+using Terraria.GameContent;
+using Terraria.DataStructures;
 
 namespace TeachMod.Items.TileCopys;
 /// <summary>
@@ -42,33 +39,20 @@ public class TileCopyItem : ModItem
         if (_step == 0) { //选中左上角
             CombatText.NewText(new Rectangle((int)pos.X, (int)pos.Y, 10, 10), Color.White, "已经选择左上角，请选择右下脚!");
             _leftPoint = Main.MouseWorld.ToTileCoordinates16().ToWorldCoordinates();
-        } else if(_step == 1) { //选中右下角
+        } else if (_step == 1) { //选中右下角
             CombatText.NewText(new Rectangle((int)pos.X, (int)pos.Y, 10, 10), Color.White, "已经选择右下角，再次使用保存!");
             _rightPoint = Main.MouseWorld.ToTileCoordinates16().ToWorldCoordinates();
-        } else if(_step == 2) { //获取选中范围内的图格
+        } else if (_step == 2) { //获取选中范围内的图格
             CombatText.NewText(new Rectangle((int)pos.X, (int)pos.Y, 10, 10), Color.White, "已经保存选中项，再次使用创建!");
             TileDataSave = GetTiles(_leftPoint, _rightPoint);
-        } else if(_step == 3) {
+        } else if (_step == 3) {
             #region 创建结构
             CreateTile(TileDataSave);
-            #endregion
-        } else if(_step == 4) {
-            #region 保存结构
-            CombatText.NewText(new Rectangle((int)pos.X, (int)pos.Y, 10, 10), Color.White, "已经保存到文件，再次使用创建!");
-            var value = JsonSerializer.Serialize(TileDataSave);
-            File.WriteAllText("D:\\1\\TileCopyItemWrite.json", value, Encoding.UTF8);
-            #endregion
-        } else if(_step == 5) {
-            #region 创建保存的结构
-            CombatText.NewText(new Rectangle((int)pos.X, (int)pos.Y, 10, 10), Color.White, "已经创建结构体，再次使用重来!");
-            var readvalue = File.ReadAllText("D:\\1\\TileCopyItemWrite.json", Encoding.UTF8);
-            var newdatasave = JsonSerializer.Deserialize<List<SaveTileData>>(readvalue);
-            CreateTile(newdatasave);
             #endregion
         }
         _step += 1;
 
-        if(_step == 6) {
+        if(_step == 4) {
             _step = 0;
         }
         //Main.NewText(_step);
@@ -156,7 +140,6 @@ public class TileCopyItem : ModItem
 
         static async Task PlaceObject(IEnumerable<(TileTypeData tileType, TileWallWireStateData data, Point16 offset)> objes, Vector2 orig)
         {
-            //从下往上放，虽然CanPlace也不会同意
             objes = objes.OrderBy(f => f.offset.Y);
             var sourcePoint = orig.ToTileCoordinates16();
             foreach (var (tileType, data, offset) in objes) {
@@ -165,10 +148,13 @@ public class TileCopyItem : ModItem
 
                 //拷贝图格对象数据以获取图格样式，然后才能得到准确的TileObject
                 var toj = new TileObjectData();
+
+                //TileObjectData.GetTileStyle()
                 toj.FullCopyFrom(tileType.Type);
+
                 if (WorldGen.InWorld(createPos.X, createPos.Y)
-                && !Main.tile[createPos].HasTile //有物块再放会挤掉 但是下面的CanPlace也不会同意
-                && TileObject.CanPlace(createPos.X, createPos.Y, tileType.Type, toj.Style, 1, out var obj)
+                    && !Main.tile[createPos].HasTile
+                    && TileObject.CanPlace(createPos.X, createPos.Y, tileType.Type, toj.Style, 1, out var obj)
                     ) {
                     TileObject.Place(obj);
                     WorldGen.SquareTileFrame(createPos.X, createPos.Y);
@@ -262,10 +248,9 @@ public class TileCopyItemPlayerLayer : PlayerDrawLayer
             SpriteBatch.Draw(White, rectangle, null, Color.White * 0.5f, 0f, Vector2.Zero, SpriteEffects.None, 1f);
             SpriteBatch.End();
             #endregion
-
         }
 
-        if (_step == 3 || _step == 5) {
+        if (_step == 3/* || _step == 5*/) {
             #region 绘制结构残影
             var tiles = moditem.TileDataSave;
             SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone, null, Main.GameViewMatrix.ZoomMatrix);
