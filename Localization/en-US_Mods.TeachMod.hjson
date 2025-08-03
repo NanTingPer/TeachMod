@@ -1,17 +1,17 @@
 Items: {
 	ImmempAccessory: {
 		DisplayName: Immemp Accessory
-		Tooltip: "饰品"
+		Tooltip: 饰品
 	}
 
 	TileCopyItem: {
 		DisplayName: 物块拷贝物品
-		Tooltip: "TileCopyItme"
+		Tooltip: TileCopyItme
 	}
 
 	CountSummaryItem: {
 		DisplayName: 计数召唤物品
-		Tooltip: "CountSummaryItem"
+		Tooltip: CountSummaryItem
 	}
 }
 

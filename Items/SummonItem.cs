@@ -50,7 +50,7 @@ public abstract class SummonItem<TProjectile, TBuff> : ModItem
 
     public static float MinionSlots { get; set; } = 1f;
 
-    #region ThisHookMethod
+    #region This
     private static bool? ItemUseItem(Func<ModItem, Player, bool?> orig, ModItem modItem, Player player)
     {
         if (!player.HasBuff<TBuff>()) {
@@ -80,6 +80,7 @@ public abstract class SummonItem<TProjectile, TBuff> : ModItem
         orig.Invoke(modProjectile);
         var projectile = modProjectile.Projectile;
         projectile.minionSlots = MinionSlots;
+        projectile.minion = true;
         Main.projPet[modProjectile.Type] = true;
     }
 
@@ -89,12 +90,12 @@ public abstract class SummonItem<TProjectile, TBuff> : ModItem
         var player = Main.player[projectile.owner];
         //不存在buff
         if (!player.HasBuff<TBuff>()) {
-            modProjectile.OnKill(projectile.timeLeft);
             projectile.active = false;
+            //projectile.Kill();
             return false;
         } else {
             //player.AddBuff(ModContent.BuffType<TBuff>(), 999);
-            return orig.Invoke(modProjectile);
+            return orig?.Invoke(modProjectile) ?? false;
         }
     }
     #endregion
@@ -109,53 +110,3 @@ public abstract class SummonItem<TProjectile, TBuff> : ModItem
     }
     #endregion
 }
-
-#pragma warning disable CA2255
-//public static class SummonItemUpHook
-//{
-//[ModuleInitializer]
-//public static void Hooks()
-//{
-//    var summaryGenericTypes = AssemblyManager
-//        .GetLoadableTypes(typeof(SummonItemUpHook).Assembly)
-//        .Where(type => type.BaseType != null && type.BaseType.GetGenericTypeDefinition() == typeof(SummonItem<,>))
-//        .Select(type => type.GetGenericParameterConstraints())
-//        ;
-//
-//    var projectileTypes = summaryGenericTypes.Select(f => f[0]);
-//    var buffTypes = summaryGenericTypes.Select(f => f[1]);
-//    var BFIP = BindingFlags.Instance | BindingFlags.Public;
-//    foreach (var projType in projectileTypes) {
-//        var projectilePreAI = projType.GetMethod("PreAI", BFIP);
-//        MonoModHooks.Add(projectilePreAI, ModProjectilePreAI);
-//    }
-//
-//    foreach (var buffType in buffTypes) {
-//        var buffSetDefault = buffType.GetMethod("SetStaticDefaults", BFIP);
-//        MonoModHooks.Add(buffSetDefault, ModBuffSetStaticDefaults);
-//    }
-//}
-
-//private static bool ModProjectilePreAI(Func<ModProjectile, bool> orig, ModProjectile modProjectile)
-//{
-//    Projectile projectile = modProjectile.Projectile;
-//    var player = Main.player[projectile.owner];
-//
-//    //不存在buff
-//    if (!player.HasBuff<TBuff>()) {
-//        modProjectile.OnKill(projectile.timeLeft);
-//        projectile.active = false;
-//        return false;
-//    } else {
-//        player.AddBuff(ModContent.BuffType<TBuff>(), 999);
-//        return orig.Invoke(modProjectile);
-//    }
-//}
-//private static void ModBuffSetStaticDefaults(Action<ModBuff> orig, ModBuff buff)
-//{
-//    orig.Invoke(buff);
-//    Main.debuff[buff.Type] = false;
-//    BuffID.Sets.TimeLeftDoesNotDecrease[buff.Type] = true;
-//}
-
-//}
