@@ -77,11 +77,17 @@ public abstract class SummonItem<TProjectile, TBuff> : ModItem
     #region Projectile
     private static void ModProjectilSetDefault(Action<ModProjectile> orig, ModProjectile modProjectile)
     {
-        orig.Invoke(modProjectile);
         var projectile = modProjectile.Projectile;
         projectile.minionSlots = MinionSlots;
         projectile.minion = true;
+        projectile.friendly = true;
+        projectile.ContinuouslyUpdateDamageStats = true; //基于弹幕伤害进行伤害计算
+        projectile.penetrate = -1;
+        projectile.tileCollide = false;
+
+        ProjectileID.Sets.MinionSacrificable[modProjectile.Type] = true; //牺牲
         Main.projPet[modProjectile.Type] = true;
+        orig.Invoke(modProjectile);
     }
 
     private static bool ModProjectilePreAI(Func<ModProjectile, bool> orig, ModProjectile modProjectile)
@@ -103,10 +109,10 @@ public abstract class SummonItem<TProjectile, TBuff> : ModItem
     #region Buff
     private static void ModBuffSetStaticDefaults(Action<ModBuff> orig, ModBuff buff)
     {
-        orig.Invoke(buff);
         Main.debuff[buff.Type] = false;
         Main.buffNoTimeDisplay[buff.Type] = true;
         BuffID.Sets.TimeLeftDoesNotDecrease[buff.Type] = true;
+        orig.Invoke(buff);
     }
     #endregion
 }
