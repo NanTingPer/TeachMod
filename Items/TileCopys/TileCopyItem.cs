@@ -151,6 +151,7 @@ public class TileCopyItem : ModItem
 
                 //TileObjectData.GetTileStyle()
                 toj.FullCopyFrom(tileType.Type);
+                //TileObjectData.GetTileData
 
                 if (WorldGen.InWorld(createPos.X, createPos.Y)
                     && !Main.tile[createPos].HasTile
