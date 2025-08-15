@@ -22,6 +22,8 @@ public static class ItemGenerator
             .AppendSplitLine()
             .AppendH("合成", 2)
             .AppendTable(lineRows, 4)
+            .AppendH("可合成", 2)
+            .AppendTable(recipeInfos.GetAllCanLineRow(), 4);
             ;
         return generator.Build;
     }
