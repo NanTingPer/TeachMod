@@ -9,6 +9,7 @@ public class GetItemMarkdownSystem : ModSystem
 {
     public override void PostSetupRecipes()
     {
+        //var item = new Item(ItemID.Zenith);
         var item = new Item(ItemID.Wood);
         var makstr = ItemGenerator.Create(item);
         base.PostSetupRecipes();

@@ -32,16 +32,16 @@ public class ItemRecipeInfo : ItemInfo
         InitValue(canRecipe, CanRequireds, CanNums, CanTiles, ref canCount, CanCreateItem);
     }
 
-    private static void InitValue(IEnumerable<Recipe> currItemRecipe, Dictionary<int, List<string>> requireds, Dictionary<int, List<string>> nums, Dictionary<int, List<string>> tiles,ref int count,  Dictionary<int, string> createItem = null)
+    private static void InitValue(IEnumerable<Recipe> currItemRecipe, Dictionary<int, List<string>> requireds, Dictionary<int, List<string>> nums, Dictionary<int, List<string>> tiles,ref int countv,  Dictionary<int, string> createItem = null)
     {
         foreach (var recipe in currItemRecipe) {
-            createItem?.Add(count, recipe.createItem.Name);
-            requireds[count] = [];
-            nums[count] = [];
-            tiles[count] = [];
+            createItem?.Add(countv, recipe.createItem.Name);
+            requireds[countv] = [];
+            nums[countv] = [];
+            tiles[countv] = [];
             foreach (var requiredItem in recipe.requiredItem) {
-                requireds[count].Add(requiredItem.Name);
-                nums[count].Add(requiredItem.stack.ToString());
+                requireds[countv].Add(requiredItem.Name);
+                nums[countv].Add(requiredItem.stack.ToString());
             }
             foreach (var tileID in recipe.requiredTile) {
                 var itemname = Items
@@ -49,12 +49,12 @@ public class ItemRecipeInfo : ItemInfo
                     .Where(f => f.createTile == tileID)
                     .FirstOrDefault();
                 if (itemname != null) {
-                    tiles[count].Add(itemname.Name);
+                    tiles[countv].Add(itemname.Name);
                 } else {
-                    tiles[count].Add(TileID.Search.GetName(tileID));
+                    tiles[countv].Add(TileID.Search.GetName(tileID));
                 }
             }
-            count++;
+            countv++;
         }
     }
     
@@ -62,7 +62,7 @@ public class ItemRecipeInfo : ItemInfo
     {
         var lineRows = new List<string>();
         lineRows.AddRange(["材料", "数量", "制作站", "目标"]);
-        for (int i = 0; i <= Count - 1; i++) {
+        for (int i = 0; i <= requireds.Keys.Count - 1 && requireds.Keys.Count != 0; i++) {
             var cailiao = string.Join("<br>", requireds[i]);
             var shuliang = string.Join("<br>", nums[i]);
             var zhizuozhan = string.Join("<br>", tiles[i]);
@@ -88,7 +88,7 @@ public class ItemRecipeInfo : ItemInfo
     /// </summary>
     public List<string> GetAllCanLineRow()
     {
-        return GetAllLineRow(Requireds, Nums, Tiles, CanCreateItem);
+        return GetAllLineRow(CanRequireds, CanNums, CanTiles, CanCreateItem);
     }
 
     /// <summary>
