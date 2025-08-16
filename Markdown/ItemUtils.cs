@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 using System.Linq;
 using Terraria;
+using Terraria.Audio;
 using Terraria.ID;
 
 namespace TeachMod.Markdown;
@@ -45,13 +47,7 @@ public static class ItemUtils
     public static Dictionary<int, List<(string name, int count)>> RequiredItems(this IEnumerable<Recipe> recipes, ref int count)
     {
         var dic = new Dictionary<int, List<(string name, int count)>>();
-        foreach (var recipe in recipes.OrderBy(r => r.RecipeIndex)) {
-            dic[count] = [];
-            foreach (var item in recipe.requiredItem) {
-                dic[count].Add(item.Name, item.stack);
-            }
-            count++;
-        }
+        dic.RequiredItems(recipes, ref count);
         return dic;
     }
     /// <summary>

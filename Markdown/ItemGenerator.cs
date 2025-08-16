@@ -1,6 +1,4 @@
-﻿using TeachMod.Teachs.TeachUtils.Markdown;
-using TeachMod.TeachUtils.Markdown;
-using Terraria;
+﻿using Terraria;
 
 namespace TeachMod.Markdown;
 
