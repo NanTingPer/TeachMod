@@ -7,6 +7,9 @@
 	<PropertyGroup>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	</PropertyGroup>
+	<ItemGroup>
+	  <Folder Include="Teachs\TeachUtils\" />
+	</ItemGroup>
 
 	<!-- References -->
 

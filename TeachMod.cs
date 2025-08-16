@@ -8,7 +8,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using TeachMod.Issues;
+using TeachMod.Teachs.Issues;
 using TeachMod.UIs;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
