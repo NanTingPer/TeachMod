@@ -1,19 +1,25 @@
 #nullable enable
+#pragma warning disable CA2255 // 不应在库中使用 “ModuleInitializer” 属性
+using log4net;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using TeachMod.Teachs.Issues;
 using TeachMod.Teachs.UIs;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.Core;
 using Terraria.UI;
 
 namespace TeachMod;
@@ -21,7 +27,32 @@ namespace TeachMod;
 	// Please read https://github.com/tModLoader/tModLoader/wiki/Basic-tModLoader-Modding-Guide#mod-skeleton-contents for more information about the various files in a mod.
 public class TeachMod : Mod
 {
+    public TeachMod()
+    {
+        //ContentAutoloadingEnabled = true;
+    }
+
     private static ILHook? _shopCount;
+
+    private static Dictionary<string, Assembly> modAssemblys = [];
+
+    [ModuleInitializer]
+    internal static void TeachModInit()
+    {
+        var assemblyField = typeof(ModLoader)
+            .Assembly
+            .GetType("Terraria.ModLoader.Core.AssemblyManager+ModLoadContext")!
+            .GetField("assembly")
+            ;
+
+        IDictionary modContexts = (IDictionary)typeof(AssemblyManager).GetField("loadedModContexts", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
+        foreach (var modNameObj in modContexts.Keys) {
+            string modName = (modNameObj as string)!;
+            var loadContext = modContexts[modName];
+            modAssemblys[modName] = (Assembly)assemblyField!.GetValue(loadContext)!;
+        }
+    }
+
     public override void Load()
     {
         ModItemUIMouseHook();

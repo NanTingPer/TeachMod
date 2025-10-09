@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35825.156 d17.13
+VisualStudioVersion = 17.13.35825.156
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeachMod", "TeachMod.csproj", "{111452C9-9589-601E-E4D0-2BDF06AFD86D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownTest", "..\MarkdownTest\MarkdownTest.csproj", "{78998778-193C-4ADB-A8BE-1D9C89A928D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{111452C9-9589-601E-E4D0-2BDF06AFD86D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{111452C9-9589-601E-E4D0-2BDF06AFD86D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{111452C9-9589-601E-E4D0-2BDF06AFD86D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78998778-193C-4ADB-A8BE-1D9C89A928D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78998778-193C-4ADB-A8BE-1D9C89A928D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78998778-193C-4ADB-A8BE-1D9C89A928D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78998778-193C-4ADB-A8BE-1D9C89A928D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

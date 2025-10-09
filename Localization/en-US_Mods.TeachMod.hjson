@@ -13,6 +13,11 @@ Items: {
 		DisplayName: 计数召唤物品
 		Tooltip: CountSummaryItem
 	}
+
+	RecipeGroupItem: {
+		DisplayName: Recipe Group Item
+		Tooltip: ""
+	}
 }
 
 NPCs: {
