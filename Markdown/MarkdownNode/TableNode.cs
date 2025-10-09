@@ -7,7 +7,8 @@ namespace TeachMod.Markdown.MarkdownNode;
 public class TableNode : MarkdownNodeBase
 {
     //x, y
-    private string[][] tableText;
+    private readonly string[][] tableText;
+    private readonly int colCount;
 
     /// <summary>
     /// 使用<see cref="List{string}"/>创建表格节点
@@ -16,6 +17,7 @@ public class TableNode : MarkdownNodeBase
     /// <param name="colCount"> 表格列数 </param>
     public TableNode(List<string> tableValue, int colCount)
     {
+        this.colCount = colCount;
         int skipCount = 0;
         int col = colCount;
         if(tableValue.Count % colCount != 0) {
@@ -47,7 +49,10 @@ public class TableNode : MarkdownNodeBase
             strBulid.Append('|');
             strBulid.AppendLine();
             if (x == 0) { //第一行
-                strBulid.Append("| ---- | ---- | ---- |");
+                for(int i = 0; i < colCount; i++) {
+                    strBulid.Append("| ---- ");
+                }
+                strBulid.Append(" |");
                 strBulid.AppendLine();
             }
         }

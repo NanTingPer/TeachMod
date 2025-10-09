@@ -16,6 +16,7 @@ public static class ItemUtils
     {
         return Main.recipe.OrderBy(r => r.RecipeIndex).Where(r => r.createItem.type == item.type);
     }
+
     /// <summary>
     /// 获取可以被此物品合成的合成表
     /// </summary>
