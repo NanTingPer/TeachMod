@@ -19,7 +19,7 @@ public class MarkdownDocument
         Nodes.Add(node);
         return this;
     }
-
+    
     /// <summary>
     /// 获取此文档的markdown文本
     /// </summary>
@@ -31,4 +31,22 @@ public class MarkdownDocument
         }
         return strBuild.ToString();
     }
+
+    public override string ToString()
+    {
+        return GetMarkdownText();
+    }
+
+    #region implicit operator
+    public static implicit operator string(MarkdownDocument md)
+    {
+        return md.ToString();
+    }
+
+    public static MarkdownDocument operator +(MarkdownDocument md, MarkdownNodeBase node)
+    {
+        md.Nodes.Add(node);
+        return md;
+    }
+    #endregion
 }

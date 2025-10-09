@@ -12,7 +12,7 @@ public static class ItemUtils
     /// <summary>
     /// 获取此物品的合成表
     /// </summary>
-    public static IEnumerable<Recipe> Recipes(this Item item)
+    public static IEnumerable<Recipe> GetRecipes(this Item item)
     {
         return Main.recipe.OrderBy(r => r.RecipeIndex).Where(r => r.createItem.type == item.type);
     }
@@ -20,7 +20,7 @@ public static class ItemUtils
     /// <summary>
     /// 获取可以被此物品合成的合成表
     /// </summary>
-    public static IEnumerable<Recipe> CanRecipes(this Item item)
+    public static IEnumerable<Recipe> GetCanRecipes(this Item item)
     {
         return Main.recipe
             .OrderBy(r => r.RecipeIndex)

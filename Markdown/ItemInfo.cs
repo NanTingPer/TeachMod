@@ -1,11 +1,16 @@
 ﻿using System.Collections.Generic;
-using Terraria.ID;
+using System.Linq;
 using Terraria;
+using Terraria.ID;
 
 namespace TeachMod.Markdown;
 public abstract class ItemInfo
 {
     private static List<Item> items;
+
+    /// <summary>
+    /// 全部的物品
+    /// </summary>
     public static List<Item> Items
     {
         get
