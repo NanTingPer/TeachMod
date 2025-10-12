@@ -1,0 +1,69 @@
+﻿#pragma warning disable CA2255
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using Terraria;
+using Terraria.Graphics.Capture;
+using Terraria.ModLoader;
+
+namespace TeachMod.Udu;
+
+public static class UIElementLoader
+{
+    private static SpriteBatch spriteBatch;
+
+    private static readonly List<Action> doUpdateHooks = [];
+    private static readonly List<UIElement> elements = [];
+
+    private delegate void DoUpate(Main main, ref GameTime gametime);
+    private delegate void DoUpdateAction(DoUpate orig, Main main, ref GameTime gametime);
+    private static void DoUpdateHook(DoUpate orig, Main main, ref GameTime gameTime)
+    {
+        orig.Invoke(main, ref gameTime);
+    }
+
+    private delegate void DrawCapture(Main main, Microsoft.Xna.Framework.Rectangle area, CaptureSettings settings);
+    private delegate void DrawCaptureAction(DrawCapture orig, Main main, Microsoft.Xna.Framework.Rectangle area, CaptureSettings settings);
+    private static void DrawCaptureHook(DrawCapture orig, Main main, Microsoft.Xna.Framework.Rectangle area, CaptureSettings settings)
+    {
+        orig.Invoke(main, area, settings);
+    }
+
+    private delegate void DoDraw(Main main, GameTime gametime);
+    private delegate void DoDrawAction(DoDraw orig, Main main, GameTime gametime);
+    private static void DoDrawHook(DoDraw orig, Main main, GameTime gametime)
+    {
+        orig.Invoke(main, gametime);
+        foreach (var uIElement in elements) {
+            if (uIElement.Active)
+                uIElement.Draw(spriteBatch);
+        }
+    }
+
+    [ModuleInitializer]
+    internal static void Hook()
+    {
+        var mainType = typeof(Terraria.Main);
+        Main.QueueMainThreadAction(() => spriteBatch = new SpriteBatch(Main.graphics.GraphicsDevice));
+        var doUpdate = mainType.GetMethod("DoUpdate", BindingFlags.NonPublic | BindingFlags.Instance);
+        var drawCapture = mainType.GetMethod("DrawCapture", BindingFlags.Public | BindingFlags.Instance);
+        var doDraw = mainType.GetMethod("DoDraw", BindingFlags.NonPublic | BindingFlags.Instance);
+        //MonoModHooks.Add(doUpdate, new DoUpdateAction(DoUpdateHook));
+        MonoModHooks.Add(drawCapture, new DrawCaptureAction(DrawCaptureHook));
+        MonoModHooks.Add(doUpdate, new DoUpdateAction(DoUpdateHook));
+        MonoModHooks.Add(doDraw, new DoDrawAction(DoDrawHook));
+    }
+
+    public static void Region(UIElement el)
+    {
+        elements.Add(el);
+    }
+
+    public static void Remove(UIElement el)
+    {
+        elements.Remove(el);
+    }
+}
