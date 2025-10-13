@@ -40,6 +40,9 @@ public static class UIElementLoader
         orig.Invoke(main, ref gameTime);
         if(currentActive?.IsMouseHover() ?? false) {
             currentActive.InvokMouseHover();
+            if(Main.mouseLeft && Main.mouseLeftRelease) {
+                currentActive.InvokMouseClick();
+            }
         }
     }
 

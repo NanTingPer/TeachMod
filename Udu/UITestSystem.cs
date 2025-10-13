@@ -14,7 +14,10 @@ public class UITestSystem : ModSystem
             Width = 200,
         };
         element.MouseHover += (a) => {
-            Mod.Logger.Debug("在范围内");
+            //Mod.Logger.Debug("在范围内");
+        };
+        element.MouseClick += (a) => {
+            Main.NewText("点击了");
         };
         base.Load();
     }

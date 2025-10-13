@@ -88,7 +88,6 @@ public class UIElement
 
         #region 测试鼠标
         spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.LinearWrap, DepthStencilState.Default, RasterizerState.CullNone, null, Main.GameViewMatrix.ZoomMatrix);
-        //var mxy = Vector2.Transform(Main.MouseScreen, Main.GameViewMatrix.EffectMatrix);
         var mxy = Main.MouseScreen;
         var mwh = new Vector2(12, 12);
         var rect = new Rectangle((int)mxy.X, (int)mxy.Y, (int)mwh.X, (int)mwh.Y);
@@ -136,12 +135,15 @@ public class UIElement
     /// </summary>
     internal void InvokMouseHover()
     {
-        //var expc = new Exception();
-        //var st = new StackTrace(expc);
-        //var frame = st.GetFrame(st.FrameCount - 1);
-        //if(frame.GetMethod()?.Name == "DoUpdateHook") {
         MouseHover.Invoke(new UIMouseEventArgs(this, Main.MouseScreen));
-        //}
+    }
+
+    /// <summary>
+    /// 调用 <see cref="MouseClick"/>
+    /// </summary>
+    internal void InvokMouseClick()
+    {
+        MouseClick.Invoke(new UIMouseEventArgs(this, Main.MouseScreen));
     }
     #endregion
 }
