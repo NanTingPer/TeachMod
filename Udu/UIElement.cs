@@ -1,6 +1,9 @@
-﻿using Microsoft.Xna.Framework;
+﻿#pragma warning disable CA2255 
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using Terraria;
 
 namespace TeachMod.Udu;
@@ -13,13 +16,16 @@ public class UIElement
     }
     
     private static Texture2D DefaultTexture;
-    static UIElement()
+
+    [ModuleInitializer]
+    internal static void Init()
     {
         Main.QueueMainThreadAction(() => {
             DefaultTexture = new Texture2D(Main.graphics.GraphicsDevice, 1, 1);
             DefaultTexture.SetData([new Color(255, 255, 255)]);
         });
     }
+
     public Texture2D Texture { get; set; } = DefaultTexture;
     /// <summary>
     /// 鼠标悬浮触发
