@@ -27,8 +27,10 @@ namespace TeachMod;
 	// Please read https://github.com/tModLoader/tModLoader/wiki/Basic-tModLoader-Modding-Guide#mod-skeleton-contents for more information about the various files in a mod.
 public class TeachMod : Mod
 {
+    public static Mod? Mod { get; private set; }
     public TeachMod()
     {
+        Mod = this;
         //ContentAutoloadingEnabled = true;
     }
 
