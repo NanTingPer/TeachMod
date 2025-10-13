@@ -60,8 +60,10 @@ public static class UIElementLoader
     {
         orig.Invoke(main, gametime);
         foreach (var uIElement in elements) {
-            if (uIElement.Active)
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.LinearWrap, DepthStencilState.Default, RasterizerState.CullNone, null, Main.UIScaleMatrix);
+            if (uIElement.Active && uIElement.Parent == null)
                 uIElement.Draw(spriteBatch);
+            spriteBatch.End();
         }
     }
 
@@ -105,7 +107,8 @@ public static class UIElementLoader
             if(element == el) {
                 el.active = false;
                 if(oldElement.Count != 0) {
-                    oldElement[^1].Active = true;
+                    var oldel = oldElement[^1];
+                    oldel.Active = true; _ = nameof(ActiveTrue);
                     oldElement.Remove(oldElement[^1]);
                 }
                 return;
@@ -120,13 +123,25 @@ public static class UIElementLoader
     public static void ActiveTrue(UIElement el)
     {
         foreach (var uel in elements) {
-            if(uel == el) {
+            uel.active = false;
+        }
+
+        foreach (var uel in elements) {
+            if (uel == el) {
                 uel.active = true;
                 oldElement.Add(currentActive); //将当前活跃添加到历史列表
                 currentActive = el;
-            } else {
-                uel.active = false;
+                ParentActive(uel, true);
+                return;
             }
         }
+    }
+
+    public static void ParentActive(UIElement element, bool activeStatu)
+    {
+        do { //父集应当活跃
+            element.active = true;
+            element = element.Parent;
+        } while (element != null);
     }
 }

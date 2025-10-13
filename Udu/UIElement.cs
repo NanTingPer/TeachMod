@@ -1,6 +1,8 @@
 ﻿#pragma warning disable CA2255 
+#nullable enable
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -16,25 +18,34 @@ public class UIElement
     }
     
     private static Texture2D DefaultTexture;
+    /// <summary>
+    /// 父容器 定级容器为null
+    /// </summary>
+    public UIElement? Parent;
 
-    [ModuleInitializer]
-    internal static void Init()
+    static UIElement()
     {
+        DefaultTexture = null!;
         Main.QueueMainThreadAction(() => {
             DefaultTexture = new Texture2D(Main.graphics.GraphicsDevice, 1, 1);
             DefaultTexture.SetData([new Color(255, 255, 255)]);
         });
     }
 
-    public Texture2D Texture { get; set; } = DefaultTexture;
+    [ModuleInitializer]
+    internal static void Init()
+    {
+    }
+    public string Name { get; set; } = string.Empty;
+    public Texture2D Texture { get; set; } = DefaultTexture!;
     /// <summary>
     /// 鼠标悬浮触发
     /// </summary>
-    public event UIMouseEvent MouseHover;
+    public event UIMouseEvent MouseHover = new UIMouseEvent((a) => { });
     /// <summary>
     /// 鼠标单击触发
     /// </summary>
-    public event UIMouseEvent MouseClick;
+    public event UIMouseEvent MouseClick = new UIMouseEvent((a) => { });
 
     internal bool active = false;
     /// <summary>
@@ -71,24 +82,26 @@ public class UIElement
     /// </summary>
     public virtual float Width { get; set; }
     /// <summary>
-    /// 相对于父容器的X偏移
+    /// 相对于父容器的左边距
     /// </summary>
-    public virtual float XOffset { get; set; }
+    public virtual float LeftPadding { get; set; } //x
     /// <summary>
-    /// 相对于父容器的Y偏移
+    /// 相对于父容器的上边距
     /// </summary>
-    public virtual float YOffset { get; set; }
-    private Rectangle DrawRectangle => new Rectangle((int)XOffset, (int)YOffset, (int)Width, (int)Height);
+    public virtual float TopPadding { get; set; }
+    public Rectangle DrawRectangle => new Rectangle((int)LeftPadding, (int)TopPadding, (int)Width, (int)Height);
 
     /// <summary>
     /// 实际调用的Draw 在<see cref="UIElementLoader.DoDrawHook(UIElementLoader.DoDraw, Main, GameTime)"/> 中被调用
+    /// <para> 已经<see cref="SpriteBatch.Begin()"/> </para>
+    /// <para> 当此Element为顶级容器时调用此方法 </para>
+    /// <para> 当方法退出时 应当保持 <see cref="SpriteBatch.Begin()"/> </para>
     /// </summary>
     public void Draw(SpriteBatch spriteBatch)
     {
-        spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.LinearWrap, DepthStencilState.Default, RasterizerState.CullNone, null, Main.UIScaleMatrix);
         DrawSelf(spriteBatch);
         foreach (var element in elements) {
-            element.Draw(spriteBatch);
+            element.DrawSelf(spriteBatch);
         }
         spriteBatch.End();
 
@@ -98,17 +111,21 @@ public class UIElement
         var mwh = new Vector2(12, 12);
         var rect = new Rectangle((int)mxy.X, (int)mxy.Y, (int)mwh.X, (int)mwh.Y);
         spriteBatch.Draw(Texture, rect, Color.White);
-        spriteBatch.End();
         #endregion
     }
 
+    public Action<UIElement, SpriteBatch>? DrawSelfAction;
     /// <summary>
     /// 由<see cref="Draw(SpriteBatch)"/>调用
+    /// <para> 当此Element不为顶级容器时调用此方法 </para>
+    /// <para> 当方法退出时应当保持 <see cref="SpriteBatch.Begin()"/> </para>
     /// </summary>
     public virtual void DrawSelf(SpriteBatch spriteBatch)
     {
-        if (IsPanle) {
+        if (IsPanle && DrawSelfAction == null) {
             spriteBatch.Draw(Texture, DrawRectangle, Color.Black);
+        } else {
+            DrawSelfAction?.Invoke(this, spriteBatch);
         }
     }
 
@@ -127,7 +144,7 @@ public class UIElement
     public bool IsMouseHover()
     {
         var matrix = Main.UIScaleMatrix;
-        var xy = Vector2.Transform(new Vector2(XOffset, YOffset), matrix);
+        var xy = Vector2.Transform(new Vector2(LeftPadding, TopPadding), matrix);
         var wh = Vector2.Transform(new Vector2(Width, Height), matrix);
         var mxy = Vector2.Transform(Main.MouseScreen, Main.GameViewMatrix.ZoomMatrix); //鼠标位置
         var mwh = new Vector2(2, 2); //鼠标大小
@@ -150,6 +167,18 @@ public class UIElement
     internal void InvokMouseClick()
     {
         MouseClick.Invoke(new UIMouseEventArgs(this, Main.MouseScreen));
+    }
+
+    public UIElement Append(UIElement element)
+    {
+        if(element == this) {
+            throw new Exception("请不要自己Append自己！");
+        }
+        element.Parent = this;
+        elements.Add(element);
+        if (element.active == true)
+            element.Active = true;
+        return this;
     }
     #endregion
 }
