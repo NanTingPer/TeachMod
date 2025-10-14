@@ -6,6 +6,7 @@
 	<!-- General -->
 	<PropertyGroup>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <LangVersion>preview</LangVersion>
 	</PropertyGroup>
 	<ItemGroup>
 	  <Folder Include="Teachs\TeachUtils\" />

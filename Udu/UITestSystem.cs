@@ -19,7 +19,7 @@ public class UITestSystem : ModSystem
             //Mod.Logger.Debug("在范围内");
         };
         element.MouseClick += (a) => {
-            Main.NewText("点击了父集");
+            Main.NewText("点击了element");
         };
 
         var element2 = new UIElement()
@@ -28,16 +28,32 @@ public class UITestSystem : ModSystem
             Active = true,
             Height = 100,
             Width = 100,
+            TopPadding = 30,
             DrawSelfAction = (ui, sb) => {
                 sb.Draw(ui.Texture, ui.DrawRectangle, Color.White);
             },
         };
         element2.MouseClick += (a) => {
-            Main.NewText("点击了子集");
+            Main.NewText("点击了element2");
         };
 
+        var element2Exit = new UIElement()
+        {
+            Name = "exit",
+            Active = true,
+            Height = 20,
+            Width = 20,
+            DrawSelfAction = (ui, sb) => {
+                sb.Draw(ui.Texture, ui.DrawRectangle, Color.Aqua);
+            }
+        };
+
+        element2Exit.MouseClick += (a) => {
+            a.Element.Parent.Active = false;
+        };
 
         element.Append(element2);
+        element2.Append(element2Exit);
         base.Load();
     }
 }

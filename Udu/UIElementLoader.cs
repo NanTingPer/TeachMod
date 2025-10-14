@@ -61,7 +61,7 @@ public static class UIElementLoader
         orig.Invoke(main, gametime);
         foreach (var uIElement in elements) {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.LinearWrap, DepthStencilState.Default, RasterizerState.CullNone, null, Main.UIScaleMatrix);
-            if (uIElement.Active && uIElement.Parent == null)
+            if (uIElement.active && uIElement.Parent == null)
                 uIElement.Draw(spriteBatch);
             spriteBatch.End();
         }
@@ -103,16 +103,29 @@ public static class UIElementLoader
     /// </summary>
     public static void ActiveFalse(UIElement el)
     {
-        foreach (var element in elements) {
-            if(element == el) {
-                el.active = false;
-                if(oldElement.Count != 0) {
-                    var oldel = oldElement[^1];
-                    oldel.Active = true; _ = nameof(ActiveTrue);
-                    oldElement.Remove(oldElement[^1]);
-                }
-                return;
+        //1. 将el的全部elements设置为false (包括elements的element)
+        //2. 将el的全部elements在oldElement删除
+        //3. 设置并删除最后活跃的element
+        var stack = new Stack<UIElement>();
+        stack.Push(el);
+        while (stack.Count != 0) {
+#if DEBUG
+            Main.NewText($"UI名称: {el.Name} 被设置为False");
+            TeachMod.Mod.Logger.Debug($"UI名称: {el.Name} 被设置为False");
+#endif
+            var cuel = stack.Pop(); //当前el
+            cuel.active = false;
+            oldElement.Remove(cuel);
+            foreach (var sel in cuel.elements) {
+                stack.Push(sel);
             }
+        }
+
+        //3. 如果历史不为空 则设置
+        if (oldElement.Count != 0) {
+            var oldel = oldElement[^1];
+            oldel.Active = true; _ = nameof(ActiveTrue);
+            oldElement.Remove(oldElement[^1]);
         }
     }
 
@@ -131,6 +144,12 @@ public static class UIElementLoader
                 uel.active = true;
                 oldElement.Add(currentActive); //将当前活跃添加到历史列表
                 currentActive = el;
+#if DEBUG
+                Main.NewText($"UI名称: {uel.Name} 因为 {el.Name} 被启用而启用");
+                Main.NewText($"当前活跃: {el.Name}");
+                TeachMod.Mod.Logger.Debug($"UI名称: {uel.Name} 因为 {el.Name} 被启用而启用");
+                TeachMod.Mod.Logger.Debug($"当前活跃: {el.Name}");
+#endif
                 ParentActive(uel, true);
                 return;
             }

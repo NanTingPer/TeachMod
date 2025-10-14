@@ -3,6 +3,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -72,23 +73,72 @@ public class UIElement
     /// 是否为面板
     /// </summary>
     public bool IsPanle { get; set; } = true;
-    private readonly List<UIElement> elements = [];
+    internal readonly List<UIElement> elements = [];
     /// <summary>
     /// 宽度
     /// </summary>
     public virtual float Height { get; set; }
+
+
     /// <summary>
     /// 高度
     /// </summary>
     public virtual float Width { get; set; }
+
+    private float leftPadding;
     /// <summary>
     /// 相对于父容器的左边距
     /// </summary>
-    public virtual float LeftPadding { get; set; } //x
+    public float LeftPadding 
+    {
+        get;
+        set
+        {
+            leftPadding = value;
+            field += Parent?.LeftPadding ?? 0f;
+            field += value;
+            //UIElement? el = this;
+            //if (el.Parent == null) {
+            //    field = value;
+            //    return;
+            //}
+            //
+            //while (el != null) {
+            //    el = el.Parent;
+            //    field += el?.leftPadding ?? 0;
+            //}
+            //field += value;
+        }
+    }//x
+
+    /// <summary>
+    /// 未递归计算的topPadding
+    /// </summary>
+    private float topPadding;
     /// <summary>
     /// 相对于父容器的上边距
     /// </summary>
-    public virtual float TopPadding { get; set; }
+    public float TopPadding
+    {
+        get; 
+        set
+        {
+            topPadding = value;
+            field += Parent?.TopPadding ?? 0f;
+            field += value;
+            //UIElement? el = this;
+            //if (el.Parent == null) {
+            //    field = value;
+            //    return;
+            //}
+            //
+            //while(el != null) {
+            //    el = el.Parent;
+            //    field += el?.topPadding ?? 0;
+            //}
+            //field += value;
+        }
+    } //y
     public Rectangle DrawRectangle => new Rectangle((int)LeftPadding, (int)TopPadding, (int)Width, (int)Height);
 
     /// <summary>
@@ -96,12 +146,20 @@ public class UIElement
     /// <para> 已经<see cref="SpriteBatch.Begin()"/> </para>
     /// <para> 当此Element为顶级容器时调用此方法 </para>
     /// <para> 当方法退出时 应当保持 <see cref="SpriteBatch.Begin()"/> </para>
+    /// <para> 此方法会使用<see cref="DrawSelf(SpriteBatch)"/>绘制全部<see cref="elements"/> </para>
     /// </summary>
     public void Draw(SpriteBatch spriteBatch)
     {
-        DrawSelf(spriteBatch);
-        foreach (var element in elements) {
-            element.DrawSelf(spriteBatch);
+        //DrawSelf(spriteBatch);
+        var stack = new Stack<UIElement>();
+        stack.Push(this);
+        while(stack.Count != 0) { //当前uielement存活 则需要绘制承载的全部element
+            var cuelement = stack.Pop(); //当前要绘制的drawSelf
+            foreach (var rearEl in cuelement.elements) { //全部活跃子集
+                if(rearEl.active == true)
+                    stack.Push(rearEl);
+            }
+            cuelement.DrawSelf(spriteBatch);
         }
         spriteBatch.End();
 
@@ -178,7 +236,25 @@ public class UIElement
         elements.Add(element);
         if (element.active == true)
             element.Active = true;
+
+        element.TopPadding = element.topPadding;
         return this;
+    }
+
+    /// <summary>
+    /// 递归所持有 <see cref="elements"/> 包含自己(第一个)
+    /// </summary>
+    public void Traverse(Action<UIElement> action)
+    {
+        var stack = new Stack<UIElement>();
+        stack.Push(this);
+        while(stack.Count != 0) {
+            var cuel = stack.Pop();
+            foreach (var sel in stack) {
+                stack.Push(sel);
+            }
+            action(cuel);
+        }
     }
     #endregion
 }
