@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿#nullable enable
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -7,13 +8,25 @@ using Terraria.GameContent;
 
 namespace TeachMod.Udu;
 
-public class ListUI<Entity> : UIElement
+
+public class ListUI<Entity> : UIElement where Entity : class
 {
+    public class ItemClickEventArgs(Entity entity, ListUI<Entity> entitys, Vector2 pos)
+    {
+        public Entity CuEntity { get; init; } = entity;
+        public ListUI<Entity> Entitys { get; init; } = entitys;
+        public Vector2 Position { get; init; } = pos;
+    }
     //public ListUI(Func<Entity, string> drawfunc)
     //{
-        
-    //}
 
+    //}
+    public ListUI()
+    {
+        MouseClick += ItemClickEventAction;
+    }
+
+    public event Action<ItemClickEventArgs>? ItemClickEvent;
     /// <summary>
     /// 本UI承载的全部对象
     /// </summary>
@@ -41,7 +54,7 @@ public class ListUI<Entity> : UIElement
     /// <summary>
     /// 本UI当前的宽度
     /// </summary>
-    public override float Width { get { _ = field; return width; } set; }
+    public override float Width { get {/* _ = field;*/ return width; } set => width = value; }
     public sealed override void DrawSelf(SpriteBatch spriteBatch)
     {
         spriteBatch.End();
@@ -50,8 +63,8 @@ public class ListUI<Entity> : UIElement
             ReLogic.Graphics.DynamicSpriteFontExtensionMethods.DrawString(
                 spriteBatch,
                 FontAssets.MouseText.Value,
-                item.ToString(),
-                GetItemPosition(item),
+                item?.ToString() ?? "",
+                GetItemPosition(item!),
                 Color.White,
                 0f,
                 Vector2.Zero,
@@ -84,6 +97,50 @@ public class ListUI<Entity> : UIElement
         entitys.Remove(entity);
         height = ItemHeight * entitys.Count;
         return this;
+    }
+
+    /// <summary>
+    /// 此Element被点击后调用，如果此次点击 点到了元素则触发<see cref="ItemClickEvent"/>
+    /// </summary>
+    /// <param name="args"></param>
+    private void ItemClickEventAction(UIMouseEventArgs args)
+    {
+        IsMouseClickItem(args.MousePosition);
+    }
+
+    /// <summary>
+    /// 鼠标是否点击元素
+    /// </summary>
+    private Entity? IsMouseClickItem(Vector2 mousePosition)
+    {
+        //TODO 绘制使用了矩阵 这里计算也要 不然会偏移
+        var newv2 = Vector2.Transform(new Vector2(ItemWidth, ItemHeight), Main.UIScaleMatrix);
+
+        var rectangle = new Rectangle(0, 0, (int)newv2.X, (int)newv2.Y);
+        foreach (var item in entitys) {
+            var itemPosition = GetItemPosition(item);
+            rectangle.X = (int)itemPosition.X;
+            rectangle.Y = (int)itemPosition.Y;
+#if DEBUG
+            TeachMod.Mod!.Logger.Debug($"{rectangle} {MouseRectangle}");
+#endif
+            if (CheckAABBvAABBCollision(rectangle, MouseRectangle)) {
+                ItemClickEvent?.Invoke(new ItemClickEventArgs(item, this, mousePosition));
+            }
+        }
+        return null;
+    }
+
+    public static bool CheckAABBvAABBCollision(Rectangle dimensions1x, Rectangle dimensions2x)
+    {
+        Vector2 position1 = new Vector2(dimensions1x.X, dimensions1x.Y);
+        Vector2 dimensions1 = new Vector2(dimensions1x.Width, dimensions1x.Height);
+        Vector2 position2 = new Vector2(dimensions2x.X, dimensions2x.Y);
+        Vector2 dimensions2 = new Vector2(dimensions2x.Width, dimensions2x.Height);
+        if (position1.X < position2.X + dimensions2.X && position1.Y < position2.Y + dimensions2.Y && position1.X + dimensions1.X > position2.X)
+            return position1.Y + dimensions1.Y > position2.Y;
+
+        return false;
     }
 
     /// <summary>

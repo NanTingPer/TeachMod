@@ -16,6 +16,16 @@ public class UIElement
         UIElementLoader.Region(this);
     }
     
+    public Rectangle MouseRectangle
+    {
+        get
+        {
+            var mxy = Vector2.Transform(Main.MouseScreen, Main.GameViewMatrix.ZoomMatrix/*Main.UIScaleMatrix*//* Main.GameViewMatrix.ZoomMatrix*/); //鼠标位置
+            var mwh = new Vector2(2, 2); //鼠标大小
+            return new Rectangle((int)mxy.X, (int)mxy.Y, (int)mwh.X, (int)mwh.Y);
+        }
+    }
+
     private static Texture2D DefaultTexture;
     /// <summary>
     /// 父容器 顶级容器为null
@@ -149,18 +159,16 @@ public class UIElement
                     stack.Push(rearEl);
             }
             cuelement.DrawSelf(spriteBatch);
-            if (cuelement == this) {
-                drawSelfPost?.Invoke(cuelement, spriteBatch);
-            }
+            cuelement.drawSelfPost?.Invoke(cuelement, spriteBatch);
         }
         spriteBatch.End();
 
         #region 测试鼠标
         spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.LinearWrap, DepthStencilState.Default, RasterizerState.CullNone, null, Main.GameViewMatrix.ZoomMatrix);
-        var mxy = Main.MouseScreen;
-        var mwh = new Vector2(12, 12);
-        var rect = new Rectangle((int)mxy.X, (int)mxy.Y, (int)mwh.X, (int)mwh.Y);
-        spriteBatch.Draw(Texture, rect, Color.Blue);
+        //var mxy = Main.MouseScreen;
+        //var mwh = new Vector2(12, 12);
+        //var rect = new Rectangle((int)mxy.X, (int)mxy.Y, (int)mwh.X, (int)mwh.Y);
+        //spriteBatch.Draw(Texture, rect, Color.Blue);
         #endregion
     }
 

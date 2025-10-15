@@ -21,8 +21,21 @@ public class UITestSystem : ModSystem
         {
             ItemHeight = 50,
             ItemWidth = 60,
-            Active = true
+            Width = 100,
+            Active = true,
+            drawSelfPost = (u, sb) => {
+                sb.End();
+                sb.Begin(SpriteSortMode.Deferred, BlendState.Additive, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null, Matrix.Identity);
+                sb.Draw(u.Texture, new Rectangle(u.MouseRectangle.X, u.MouseRectangle.Y, 10, 10), Color.Aqua);
+                sb.End();
+                sb.Begin();
+            }
         };
+
+        listUi.ItemClickEvent += (ar) => {
+            Mod.Logger.Debug($"Click : {ar.CuEntity}");
+        };
+
         listUi
             .Append("第一个元素")
             .Append("第二个元素")
