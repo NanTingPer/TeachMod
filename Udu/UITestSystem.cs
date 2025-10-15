@@ -14,46 +14,25 @@ public class UITestSystem : ModSystem
             Active = true,
             Height = 200,
             Width = 200,
-        };
-        element.MouseHover += (a) => {
-            //Mod.Logger.Debug("在范围内");
-        };
-        element.MouseClick += (a) => {
-            Main.NewText("点击了element");
+            IsPanle = true
         };
 
-        var element2 = new UIElement()
+        var listUi = new ListUI<string>()
         {
-            Name = "子",
-            Active = true,
-            Height = 100,
-            Width = 100,
-            TopPadding = 30,
-            DrawSelfAction = (ui, sb) => {
-                sb.Draw(ui.Texture, ui.DrawRectangle, Color.White);
-            },
+            ItemHeight = 50,
+            ItemWidth = 60,
+            Active = true
         };
-        element2.MouseClick += (a) => {
-            Main.NewText("点击了element2");
-        };
+        listUi
+            .Append("第一个元素")
+            .Append("第二个元素")
+            .Append("第三个元素")
+            .Append("第四个元素")
+            .Append("第五个元素")
+            .Append("第六个元素")
+            ;
 
-        var element2Exit = new UIElement()
-        {
-            Name = "exit",
-            Active = true,
-            Height = 20,
-            Width = 20,
-            DrawSelfAction = (ui, sb) => {
-                sb.Draw(ui.Texture, ui.DrawRectangle, Color.Aqua);
-            }
-        };
-
-        element2Exit.MouseClick += (a) => {
-            a.Element.Parent.Active = false;
-        };
-
-        element.Append(element2);
-        element2.Append(element2Exit);
+        element.Append(listUi);
         base.Load();
     }
 }

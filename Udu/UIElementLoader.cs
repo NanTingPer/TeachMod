@@ -60,7 +60,7 @@ public static class UIElementLoader
     {
         orig.Invoke(main, gametime);
         foreach (var uIElement in elements) {
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.LinearWrap, DepthStencilState.Default, RasterizerState.CullNone, null, Main.UIScaleMatrix);
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null, Main.UIScaleMatrix);
             if (uIElement.active && uIElement.Parent == null)
                 uIElement.Draw(spriteBatch);
             spriteBatch.End();

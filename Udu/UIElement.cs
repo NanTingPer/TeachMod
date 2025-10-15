@@ -3,10 +3,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using Terraria;
 
 namespace TeachMod.Udu;
@@ -20,9 +18,13 @@ public class UIElement
     
     private static Texture2D DefaultTexture;
     /// <summary>
-    /// 父容器 定级容器为null
+    /// 父容器 顶级容器为null
     /// </summary>
-    public UIElement? Parent;
+    private UIElement? parent;
+    /// <summary>
+    /// 父容器 顶级容器为null
+    /// </summary>
+    public UIElement? Parent => parent;
 
     static UIElement()
     {
@@ -85,7 +87,10 @@ public class UIElement
     /// </summary>
     public virtual float Width { get; set; }
 
-    private float leftPadding;
+    /// <summary>
+    /// 原始左边距(未递归计算)
+    /// </summary>
+    public float leftPadding;
     /// <summary>
     /// 相对于父容器的左边距
     /// </summary>
@@ -95,26 +100,15 @@ public class UIElement
         set
         {
             leftPadding = value;
-            field += Parent?.LeftPadding ?? 0f;
+            field += parent?.LeftPadding ?? 0f;
             field += value;
-            //UIElement? el = this;
-            //if (el.Parent == null) {
-            //    field = value;
-            //    return;
-            //}
-            //
-            //while (el != null) {
-            //    el = el.Parent;
-            //    field += el?.leftPadding ?? 0;
-            //}
-            //field += value;
         }
     }//x
 
     /// <summary>
-    /// 未递归计算的topPadding
+    /// 原始上边距(未递归计算)
     /// </summary>
-    private float topPadding;
+    public float topPadding;
     /// <summary>
     /// 相对于父容器的上边距
     /// </summary>
@@ -124,22 +118,17 @@ public class UIElement
         set
         {
             topPadding = value;
-            field += Parent?.TopPadding ?? 0f;
+            field += parent?.TopPadding ?? 0f;
             field += value;
-            //UIElement? el = this;
-            //if (el.Parent == null) {
-            //    field = value;
-            //    return;
-            //}
-            //
-            //while(el != null) {
-            //    el = el.Parent;
-            //    field += el?.topPadding ?? 0;
-            //}
-            //field += value;
         }
     } //y
-    public Rectangle DrawRectangle => new Rectangle((int)LeftPadding, (int)TopPadding, (int)Width, (int)Height);
+    /// <summary>
+    /// 使用
+    /// <code>
+    /// new Rectangle((int)LeftPadding, (int)TopPadding, (int)Width, (int)Height);
+    /// </code>
+    /// </summary>
+    public virtual Rectangle DrawRectangle => new Rectangle((int)LeftPadding, (int)TopPadding, (int)Width, (int)Height);
 
     /// <summary>
     /// 实际调用的Draw 在<see cref="UIElementLoader.DoDrawHook(UIElementLoader.DoDraw, Main, GameTime)"/> 中被调用
@@ -160,6 +149,9 @@ public class UIElement
                     stack.Push(rearEl);
             }
             cuelement.DrawSelf(spriteBatch);
+            if (cuelement == this) {
+                drawSelfPost?.Invoke(cuelement, spriteBatch);
+            }
         }
         spriteBatch.End();
 
@@ -168,11 +160,14 @@ public class UIElement
         var mxy = Main.MouseScreen;
         var mwh = new Vector2(12, 12);
         var rect = new Rectangle((int)mxy.X, (int)mxy.Y, (int)mwh.X, (int)mwh.Y);
-        spriteBatch.Draw(Texture, rect, Color.White);
+        spriteBatch.Draw(Texture, rect, Color.Blue);
         #endregion
     }
 
-    public Action<UIElement, SpriteBatch>? DrawSelfAction;
+    /// <summary>
+    /// 当调用完对象的DrawSelf后会调用此委托
+    /// </summary>
+    public Action<UIElement, SpriteBatch>? drawSelfPost;
     /// <summary>
     /// 由<see cref="Draw(SpriteBatch)"/>调用
     /// <para> 当此Element不为顶级容器时调用此方法 </para>
@@ -180,10 +175,8 @@ public class UIElement
     /// </summary>
     public virtual void DrawSelf(SpriteBatch spriteBatch)
     {
-        if (IsPanle && DrawSelfAction == null) {
-            spriteBatch.Draw(Texture, DrawRectangle, Color.Black);
-        } else {
-            DrawSelfAction?.Invoke(this, spriteBatch);
+        if (IsPanle) {
+            spriteBatch.Draw(Texture, DrawRectangle, null, Color.Black, 0f, Vector2.Zero, SpriteEffects.None, 1f);
         }
     }
 
@@ -232,7 +225,7 @@ public class UIElement
         if(element == this) {
             throw new Exception("请不要自己Append自己！");
         }
-        element.Parent = this;
+        element.parent = this;
         elements.Add(element);
         if (element.active == true)
             element.Active = true;
