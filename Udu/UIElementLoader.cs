@@ -150,16 +150,19 @@ public static class UIElementLoader
                 TeachMod.Mod.Logger.Debug($"UI名称: {uel.Name} 因为 {el.Name} 被启用而启用");
                 TeachMod.Mod.Logger.Debug($"当前活跃: {el.Name}");
 #endif
-                ParentActive(uel, true);
+                ParentActive(uel, true); //设置父集活跃
                 return;
             }
         }
     }
 
+    /// <summary>
+    /// 设置此element为给定状态，同时此element的递归父类也会设置为此状态
+    /// </summary>
     public static void ParentActive(UIElement element, bool activeStatu)
     {
         do { //父集应当活跃
-            element.active = true;
+            element.active = activeStatu;
             element = element.Parent;
         } while (element != null);
     }
