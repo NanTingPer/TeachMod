@@ -55,6 +55,14 @@ public class ListUI<Entity> : UIElement where Entity : class
     /// 本UI当前的宽度
     /// </summary>
     public override float Width { get {/* _ = field;*/ return width; } set => width = value; }
+
+    /// <summary>
+    /// <code>
+    /// Vector2.Transform(new Vector2(height, width), Main.UIScaleMatrix)
+    /// </code>
+    /// </summary>
+    public Vector2 HeightWidth => Vector2.Transform(new Vector2(height, width), Main.UIScaleMatrix);
+
     public sealed override void DrawSelf(SpriteBatch spriteBatch)
     {
         spriteBatch.End();
@@ -113,12 +121,21 @@ public class ListUI<Entity> : UIElement where Entity : class
     /// </summary>
     private Entity? IsMouseClickItem(Vector2 mousePosition)
     {
+        //1. 计算变换后的UI大小
+        //2. 遍历列表元素 并判断鼠标位置是否进行碰撞
+        //鼠标位置使用 Main.GameViewMatrix.ZoomMatrix 矩阵
+        //列表元素统一使用 Main.UIScaleMatrix
+
         //TODO 绘制使用了矩阵 这里计算也要 不然会偏移
         var newv2 = Vector2.Transform(new Vector2(ItemWidth, ItemHeight), Main.UIScaleMatrix);
 
         var rectangle = new Rectangle(0, 0, (int)newv2.X, (int)newv2.Y);
         foreach (var item in entitys) {
+            //绘制位置未应用矩阵，因为在Begin中已经指定
+            //如果要将未应用矩阵的元素与应用了矩阵的元素比较，会造成偏移
+            //消除偏移 需要手动应用矩阵
             var itemPosition = GetItemPosition(item);
+            itemPosition = Vector2.Transform(itemPosition, Main.UIScaleMatrix);
             rectangle.X = (int)itemPosition.X;
             rectangle.Y = (int)itemPosition.Y;
 #if DEBUG
@@ -160,9 +177,13 @@ public class ListUI<Entity> : UIElement where Entity : class
     /// <returns></returns>
     private Vector2 GetItemPosition(int index)
     {
+        //1. 先计算此元素在列表中的索引 然后根据索引计算其左上角位置
+        _ = Main.UIScaleMatrix;
+
         //数量 * 元素高度 + 元素间距
         var itemOffset = new Vector2(0, index * ItemHeight + ItemVerticalSpacing); //TODO 现在X是没变的
         var origOffset = new Vector2(LeftPadding, TopPadding);
-        return origOffset + itemOffset;
+
+        return origOffset + itemOffset ;//origOffset + itemOffset;
     }
 }
