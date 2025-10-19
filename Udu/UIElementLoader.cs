@@ -11,6 +11,8 @@ using Terraria.ModLoader;
 
 namespace TeachMod.Udu;
 
+//1. 将事件只对ActiveUIElement生效 迁移到每个UIElement拥有一个Active
+
 public static class UIElementLoader
 {
     /// <summary>
