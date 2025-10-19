@@ -8,29 +8,45 @@ using System.Runtime.CompilerServices;
 using Terraria;
 using Terraria.Graphics.Capture;
 using Terraria.ModLoader;
+using ParentUIElement = TeachMod.Udu.UIElement;
 
 namespace TeachMod.Udu;
 
 //1. 将事件只对ActiveUIElement生效 迁移到每个UIElement拥有一个Active
+//  1. 在UIElement添加一个字段 --> currentActive
+//  2. UIElementLoader遍历每个(没有父元素 && Active) 的UIElement，并进行Draw
 
 public static class UIElementLoader
 {
     /// <summary>
     /// 当前活跃的 UIElement
     /// </summary>
-    private static UIElement currentActive = null;
+    private static UIElement _currentActive = null;
+
+    /// <summary>
+    /// 每个顶级父元素当前活跃的UIElement 其中Key是顶级父元素
+    /// </summary>
+    private readonly static Dictionary<ParentUIElement, UIElement> _currentActives = [];
+
     /// <summary>
     /// 历史活跃的UIElement
     /// </summary>
-    private static List<UIElement> oldElement = [];
-    private static SpriteBatch spriteBatch;
+    private readonly static List<UIElement> _oldElement = [];
+
+    /// <summary>
+    /// 每个顶级父元素的历史活跃UIElement 其中Key是顶级父元素
+    /// </summary>
+    private readonly static Dictionary<ParentUIElement, UIElement> _oldElements = [];
+    private readonly static List<UIElement> _drawElements = [];
+    
+    private static SpriteBatch _spriteBatch;
     /// <summary>
     /// 鼠标悬浮触发
     /// </summary>
     public static event UIMouseEvent MouseHover;
 
-    private static readonly List<Action> doUpdateHooks = [];
-    private static readonly List<UIElement> elements = [];
+    private static readonly List<Action> _doUpdateHooks = [];
+    private static readonly List<UIElement> _elements = [];
 
     private delegate void DoUpate(Main main, ref GameTime gametime);
     private delegate void DoUpdateAction(DoUpate orig, Main main, ref GameTime gametime);
@@ -40,10 +56,10 @@ public static class UIElementLoader
     private static void DoUpdateHook(DoUpate orig, Main main, ref GameTime gameTime)
     {
         orig.Invoke(main, ref gameTime);
-        if(currentActive?.IsMouseHover() ?? false) {
-            currentActive.InvokMouseHover();
+        if(_currentActive?.IsMouseHover() ?? false) {
+            _currentActive.InvokMouseHover();
             if(Main.mouseLeft && Main.mouseLeftRelease) {
-                currentActive.InvokMouseClick();
+                _currentActive.InvokMouseClick();
             }
         }
     }
@@ -61,11 +77,11 @@ public static class UIElementLoader
     private static void DoDrawHook(DoDraw orig, Main main, GameTime gametime)
     {
         orig.Invoke(main, gametime);
-        foreach (var uIElement in elements) {
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null, Main.UIScaleMatrix);
+        foreach (var uIElement in _elements) {
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null, Main.UIScaleMatrix);
             if (uIElement.active && uIElement.Parent == null)
-                uIElement.Draw(spriteBatch);
-            spriteBatch.End();
+                uIElement.Draw(_spriteBatch);
+            _spriteBatch.End();
         }
     }
 
@@ -73,7 +89,7 @@ public static class UIElementLoader
     internal static void Hook()
     {
         var mainType = typeof(Terraria.Main);
-        Main.QueueMainThreadAction(() => spriteBatch = new SpriteBatch(Main.graphics.GraphicsDevice));
+        Main.QueueMainThreadAction(() => _spriteBatch = new SpriteBatch(Main.graphics.GraphicsDevice));
         var doUpdate = mainType.GetMethod("DoUpdate", BindingFlags.NonPublic | BindingFlags.Instance);
         var drawCapture = mainType.GetMethod("DrawCapture", BindingFlags.Public | BindingFlags.Instance);
         var doDraw = mainType.GetMethod("DoDraw", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -89,7 +105,7 @@ public static class UIElementLoader
     /// <param name="el"></param>
     public static void Region(UIElement el)
     {
-        elements.Add(el);
+        _elements.Add(el);
     }
 
     /// <summary>
@@ -97,7 +113,7 @@ public static class UIElementLoader
     /// </summary>
     public static void Remove(UIElement el)
     {
-        elements.Remove(el);
+        _elements.Remove(el);
     }
 
     /// <summary>
@@ -117,17 +133,17 @@ public static class UIElementLoader
 #endif
             var cuel = stack.Pop(); //当前el
             cuel.active = false;
-            oldElement.Remove(cuel);
+            _oldElement.Remove(cuel);
             foreach (var sel in cuel.elements) {
                 stack.Push(sel);
             }
         }
 
         //3. 如果历史不为空 则设置
-        if (oldElement.Count != 0) {
-            var oldel = oldElement[^1];
+        if (_oldElement.Count != 0) {
+            var oldel = _oldElement[^1];
             oldel.Active = true; _ = nameof(ActiveTrue);
-            oldElement.Remove(oldElement[^1]);
+            _oldElement.Remove(_oldElement[^1]);
         }
     }
 
@@ -137,15 +153,15 @@ public static class UIElementLoader
     /// <param name="el"></param>
     public static void ActiveTrue(UIElement el)
     {
-        foreach (var uel in elements) {
+        foreach (var uel in _elements) {
             uel.active = false;
         }
 
-        foreach (var uel in elements) {
+        foreach (var uel in _elements) {
             if (uel == el) {
                 uel.active = true;
-                oldElement.Add(currentActive); //将当前活跃添加到历史列表
-                currentActive = el;
+                _oldElement.Add(_currentActive); //将当前活跃添加到历史列表
+                _currentActive = el;
 #if DEBUG
                 Main.NewText($"UI名称: {uel.Name} 因为 {el.Name} 被启用而启用");
                 Main.NewText($"当前活跃: {el.Name}");
