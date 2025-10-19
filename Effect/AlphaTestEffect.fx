@@ -1,9 +1,9 @@
-sampler uImage0 : register(s0);
+ï»¿sampler uImage0 : register(s0);
 sampler uImage1 : register(s1);
 float alpha;
 
-//sampleColor -> ´ÓCOLOR0È¡ÑÕÉ«
-//coords -> »ñÈ¡µ±Ç°»æÖÆ²ÄÖÊµÄ×ø±ê
+//sampleColor -> ä»COLOR0å–é¢œè‰²
+//coords -> è·å–å½“å‰ç»˜åˆ¶æè´¨çš„åæ ‡
 float4 PixelShaderF(float4 sampleColor : COLOR0, float2 coords : TEXCOORD0) : COLOR0
 {
     float4 currentPixel = tex2D(uImage0, coords);
