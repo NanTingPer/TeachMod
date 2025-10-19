@@ -174,6 +174,7 @@ public class UIElement
 
     /// <summary>
     /// 当调用完对象的DrawSelf后会调用此委托
+    /// <para>当方法退出时应当保持 <see cref="SpriteBatch.Begin()"/></para>
     /// </summary>
     public Action<UIElement, SpriteBatch>? drawSelfPost;
     /// <summary>

@@ -37,7 +37,6 @@ public static class UIElementLoader
     /// 每个顶级父元素的历史活跃UIElement 其中Key是顶级父元素
     /// </summary>
     private readonly static Dictionary<ParentUIElement, UIElement> _oldElements = [];
-    private readonly static List<UIElement> _drawElements = [];
     
     private static SpriteBatch _spriteBatch;
     /// <summary>
@@ -77,10 +76,10 @@ public static class UIElementLoader
     private static void DoDrawHook(DoDraw orig, Main main, GameTime gametime)
     {
         orig.Invoke(main, gametime);
-        foreach (var uIElement in _elements) {
+        foreach (var uIelement in _elements) {
+            if (uIelement.Parent != null || uIelement.active == false) continue;
             _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null, Main.UIScaleMatrix);
-            if (uIElement.active && uIElement.Parent == null)
-                uIElement.Draw(_spriteBatch);
+            uIelement.Draw(_spriteBatch);
             _spriteBatch.End();
         }
     }

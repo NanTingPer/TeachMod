@@ -9,6 +9,9 @@
     <LangVersion>preview</LangVersion>
 	</PropertyGroup>
 	<ItemGroup>
+	  <AdditionalFiles Remove="Effect\AlphaTestEffect.FX" />
+	</ItemGroup>
+	<ItemGroup>
 	  <Folder Include="Teachs\TeachUtils\" />
 	</ItemGroup>
 
