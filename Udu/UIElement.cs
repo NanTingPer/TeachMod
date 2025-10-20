@@ -26,6 +26,8 @@ public class UIElement
         }
     }
 
+    public Vector2 MouseOffset => new Vector2(Main.MouseScreen.X - TopPadding, Main.MouseScreen.Y - LeftPadding);
+
     private static Texture2D DefaultTexture;
     /// <summary>
     /// 父容器 顶级容器为null
@@ -100,7 +102,7 @@ public class UIElement
     /// <summary>
     /// 原始左边距(未递归计算)
     /// </summary>
-    public float leftPadding;
+    public float OrigLeftPadding { get; private set; }
     /// <summary>
     /// 相对于父容器的左边距
     /// </summary>
@@ -109,16 +111,21 @@ public class UIElement
         get;
         set
         {
-            leftPadding = value;
-            field += parent?.LeftPadding ?? 0f;
-            field += value;
+            float left = value;
+            OrigLeftPadding = value;
+            this.TraverseParent(u => left += u.OrigLeftPadding);
+            field = left;
+
+            //_LeftPadding = value;
+            //field += parent?.LeftPadding ?? 0f;
+            //field += value;
         }
     }//x
 
     /// <summary>
     /// 原始上边距(未递归计算)
     /// </summary>
-    public float topPadding;
+    public float OrigTopPadding { get; private set; }
     /// <summary>
     /// 相对于父容器的上边距
     /// </summary>
@@ -127,9 +134,14 @@ public class UIElement
         get; 
         set
         {
-            topPadding = value;
-            field += parent?.TopPadding ?? 0f;
-            field += value;
+            float top = value;
+            OrigLeftPadding = value;
+            this.TraverseParent(u => top += u.OrigTopPadding);
+            field = top;
+
+            //OrigTopPadding = value;
+            //field += parent?.TopPadding ?? 0f;
+            //field += value;
         }
     } //y
     /// <summary>
@@ -239,7 +251,7 @@ public class UIElement
         if (element.active == true)
             element.Active = true;
 
-        element.TopPadding = element.topPadding;
+        element.TopPadding = element.OrigTopPadding;
         return this;
     }
 
@@ -268,12 +280,25 @@ public class UIElement
             return;
         var stack = new Stack<UIElement>();
         stack.Push(parent);
-        while (stack.Count == 0) {
+        while (stack.Count != 0) {
             var popEl = stack.Pop();
             action.Invoke(popEl);
             if (popEl.parent != null)
                 stack.Push(popEl.parent);
         }
+    }
+
+    /// <summary>
+    /// 获取顶级父类
+    /// </summary>
+    public UIElement Component()
+    {
+        UIElement ul = null!;
+        if (this.parent == null) {
+            return this;
+        }
+        TraverseParent(u => ul = u);
+        return ul!;
     }
     #endregion
 }

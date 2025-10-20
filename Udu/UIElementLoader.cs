@@ -65,8 +65,9 @@ public static class UIElementLoader
                 lock (_elementIndexEditLock) {
                     try {
                         _elementIndexEdit.Enqueue(() => {
-                            _elements.Remove(forelement);
-                            _elements.Add(forelement);
+                            var upEl = forelement.Component();
+                            _elements.Remove(upEl);
+                            _elements.Add(upEl);
                         });
                     } finally { }
                 }
@@ -96,7 +97,6 @@ public static class UIElementLoader
     private static void DoDrawHook(DoDraw orig, Main main, GameTime gametime)
     {
         orig.Invoke(main, gametime);
-        //这里可能会报错，因为遍历的时候不能添加内容
         foreach (var uIelement in _elements) {
             if (uIelement.Parent != null || uIelement.active == false) continue;
             _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null, Main.UIScaleMatrix);

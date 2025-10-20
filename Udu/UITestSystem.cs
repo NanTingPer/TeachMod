@@ -11,6 +11,8 @@ public class UITestSystem : ModSystem
 {
     public static Asset<Texture2D> Clp;
     public static Asset<Effect> AlphaTestEffect;
+
+    private Vector2 mouseOffset;
     public override void Load()
     {
         Clp = ModContent.Request<Texture2D>("TeachMod/Udu/School/clp", AssetRequestMode.ImmediateLoad);
@@ -21,6 +23,19 @@ public class UITestSystem : ModSystem
             Height = 400,
             Width = 300,
             IsPanle = true
+        };
+        elementUpIndexTestUI.MouseHover += (a) => {
+            UIElement @this = a.Element;
+            if (Main.mouseLeft && Main.mouseLeftRelease) {
+                mouseOffset = @this.MouseOffset;
+            } else if (Main.mouseLeft) {
+                //先计算当前鼠标位置与原点位置的差
+                float elSubMouseY = Main.MouseScreen.Y - mouseOffset.Y;
+                float elSubMouseX = Main.MouseScreen.X - mouseOffset.X;
+
+                a.Element.TopPadding = elSubMouseY;
+                a.Element.LeftPadding = elSubMouseX;
+            }
         };
         
         var element = new UIElement()
@@ -49,7 +64,7 @@ public class UITestSystem : ModSystem
         
         listUi.ItemClickEvent += (ar) => {
             Mod.Logger.Debug($"Click : {ar.CuEntity}");
-            ar.Entitys.Parent.Active = false;
+            //ar.Entitys.Parent.Active = false;
         };
         
         listUi
