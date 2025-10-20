@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Terraria;
@@ -29,12 +28,13 @@ public static class UIElementLoader
     /// <summary>
     /// 当前活跃的 UIElement
     /// </summary>
-    private static UIElement _currentActive = null;
+    //private static UIElement _currentActive = null;
 
     /// <summary>
     /// 历史活跃的UIElement
     /// </summary>
-    private readonly static List<UIElement> _oldElement = [];
+    //private readonly static List<UIElement> _oldElement = [];
+
     private static SpriteBatch _spriteBatch;
     /// <summary>
     /// 鼠标悬浮触发
@@ -147,71 +147,65 @@ public static class UIElementLoader
     }
 
     /// <summary>
-    /// 将el的状态设置为False
+    /// 将传入的UIElement设置为不活跃，其<see cref="UIElement.elements"/>也会变为不活跃
     /// </summary>
     public static void ActiveFalse(UIElement el)
     {
         //1. 将el的全部elements设置为false (包括elements的element)
         //2. 将el的全部elements在oldElement删除
         //3. 设置并删除最后活跃的element
-        var stack = new Stack<UIElement>();
-        stack.Push(el);
-        while (stack.Count != 0) {
-#if DEBUG
-            Main.NewText($"UI名称: {el.Name} 被设置为False");
-            TeachMod.Mod.Logger.Debug($"UI名称: {el.Name} 被设置为False");
-#endif
-            var cuel = stack.Pop(); //当前el
-            cuel.active = false;
-            _oldElement.Remove(cuel);
-            foreach (var sel in cuel.elements) {
-                stack.Push(sel);
-            }
-        }
+        el.TraverseElements(u => u.active = false);
 
-        //3. 如果历史不为空 则设置
-        if (_oldElement.Count != 0) {
-            var oldel = _oldElement[^1];
-            oldel.Active = true; _ = nameof(ActiveTrue);
-            _oldElement.Remove(_oldElement[^1]);
-        }
+        //var stack = new Stack<UIElement>();
+        //stack.Push(el);
+        //while (stack.Count != 0) {
+        //    var cuel = stack.Pop(); //当前el
+        //    cuel.active = false;
+        //    _oldElement.Remove(cuel);
+        //    foreach (var sel in cuel.elements) {
+        //        stack.Push(sel);
+        //    }
+        //}
+        //
+        ////3. 如果历史不为空 则设置
+        //if (_oldElement.Count != 0) {
+        //    var oldel = _oldElement[^1];
+        //    oldel.Active = true; _ = nameof(ActiveTrue);
+        //    _oldElement.Remove(_oldElement[^1]);
+        //}
     }
 
     /// <summary>
-    /// 设置当前活跃的el
+    /// 将传入的UIElement设置为活跃，其父也会变为活跃
     /// </summary>
     /// <param name="el"></param>
     public static void ActiveTrue(UIElement el)
     {
-        foreach (var uel in _elements) {
-            uel.active = false;
-        }
-
-        foreach (var uel in _elements) {
-            if (uel == el) {
-                uel.active = true;
-                _oldElement.Add(_currentActive); //将当前活跃添加到历史列表
-                _currentActive = el;
-#if DEBUG
-                Main.NewText($"UI名称: {uel.Name} 因为 {el.Name} 被启用而启用");
-                Main.NewText($"当前活跃: {el.Name}");
-                TeachMod.Mod.Logger.Debug($"UI名称: {uel.Name} 因为 {el.Name} 被启用而启用");
-                TeachMod.Mod.Logger.Debug($"当前活跃: {el.Name}");
-#endif
-                ParentActive(uel, true); //设置父集活跃
-                return;
-            }
-        }
+        el.active = true;
+        el.TraverseParent(u => u.active = true);
+        //foreach (var uel in _elements) {
+        //    uel.active = false;
+        //}
+        //
+        //foreach (var uel in _elements) {
+        //    if (uel == el) {
+        //        uel.active = true;
+        //        _oldElement.Add(_currentActive); //将当前活跃添加到历史列表
+        //        _currentActive = el;
+        //        ParentActive(uel, true); //设置父集活跃
+        //        return;
+        //    }
+        //}
     }
 
     /// <summary>
     /// 设置此element为给定状态，同时此element的递归父类也会设置为此状态
     /// </summary>
-    public static void ParentActive(UIElement element, bool activeStatu)
-    {
-        do { //父集应当活跃
-            element.active = activeStatu;
-            element = element.Parent;
-        } while (element != null);
-    }
+    //public static void ParentActive(UIElement element, bool activeStatu)
+    //{
+    //    do { //父集应当活跃
+    //        element.active = activeStatu;
+    //        element = element.Parent;
+    //    } while (element != null);
+    //}
 }

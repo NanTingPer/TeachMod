@@ -246,16 +246,33 @@ public class UIElement
     /// <summary>
     /// 递归所持有 <see cref="elements"/> 包含自己(第一个)
     /// </summary>
-    public void Traverse(Action<UIElement> action)
+    public void TraverseElements(Action<UIElement> action)
     {
         var stack = new Stack<UIElement>();
         stack.Push(this);
         while(stack.Count != 0) {
             var cuel = stack.Pop();
-            foreach (var sel in stack) {
+            action(cuel);
+            foreach (var sel in cuel.elements) {
                 stack.Push(sel);
             }
-            action(cuel);
+        }
+    }
+
+    /// <summary>
+    /// 递归父
+    /// </summary>
+    public void TraverseParent(Action<UIElement> action)
+    {
+        if (this.parent == null)
+            return;
+        var stack = new Stack<UIElement>();
+        stack.Push(parent);
+        while (stack.Count == 0) {
+            var popEl = stack.Pop();
+            action.Invoke(popEl);
+            if (popEl.parent != null)
+                stack.Push(popEl.parent);
         }
     }
     #endregion

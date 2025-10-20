@@ -15,6 +15,14 @@ public class UITestSystem : ModSystem
     {
         Clp = ModContent.Request<Texture2D>("TeachMod/Udu/School/clp", AssetRequestMode.ImmediateLoad);
         AlphaTestEffect = ModContent.Request<Effect>("TeachMod/Effect/Content/AlphaTestEffect", AssetRequestMode.ImmediateLoad);
+        var elementUpIndexTestUI = new UIElement()
+        {
+            Active = true,
+            Height = 400,
+            Width = 300,
+            IsPanle = true
+        };
+        
         var element = new UIElement()
         {
             Active = true,
@@ -41,6 +49,7 @@ public class UITestSystem : ModSystem
         
         listUi.ItemClickEvent += (ar) => {
             Mod.Logger.Debug($"Click : {ar.CuEntity}");
+            ar.Entitys.Parent.Active = false;
         };
         
         listUi
