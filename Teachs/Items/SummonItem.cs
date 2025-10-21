@@ -6,21 +6,22 @@ using Terraria.ModLoader;
 
 namespace TeachMod.Teachs.Items;
 
-[Autoload]
-public abstract class SummonItem<TProjectile, TBuff> : ModItem
+public abstract class SummonItem<TProjectile, TBuff, TSelf> : ModItem
     where TBuff : ModBuff
     where TProjectile : ModProjectile
+    where TSelf : SummonItem<TProjectile, TBuff, TSelf>
 {
     static SummonItem()
     {
         var tProjectileType = typeof(TProjectile);
         var tBuffType = typeof(TBuff);
-        var thisType = typeof(SummonItem<TProjectile, TBuff>);
+        var thisType = typeof(TSelf);
         var BFIP = BindingFlags.Instance | BindingFlags.Public;
 
-        #region This
+        #region Get This Method
         var itemSetDefaults = thisType
             .GetMethod(nameof(SetDefaults), BFIP);
+
         MonoModHooks.Add(itemSetDefaults, ItemSetDefaults);
 
         var itemUseItem = thisType
@@ -28,7 +29,7 @@ public abstract class SummonItem<TProjectile, TBuff> : ModItem
         MonoModHooks.Add(itemUseItem, ItemUseItem);
         #endregion
 
-        #region Projectile
+        #region Get Projectile Method
         var projectilePreAI = tProjectileType
             .GetMethod(nameof(ModProjectile.PreAI), BFIP);
         MonoModHooks.Add(projectilePreAI, ModProjectilePreAI);
@@ -38,15 +39,12 @@ public abstract class SummonItem<TProjectile, TBuff> : ModItem
         MonoModHooks.Add(projectileSetDefault, ModProjectilSetDefault);
         #endregion
 
-        #region Buff
+        #region Get Buff Method
         var buffSetDefault = tBuffType
             .GetMethod(nameof(ModBuff.SetStaticDefaults), BFIP);
         MonoModHooks.Add(buffSetDefault, ModBuffSetStaticDefaults);
         #endregion
     }
-
-    public override string Texture => "Terraria/Images/Projectile_" + ProjectileID.EmpressBlade;
-
     public static float MinionSlots { get; set; } = 1f;
 
     #region This
@@ -93,13 +91,10 @@ public abstract class SummonItem<TProjectile, TBuff> : ModItem
     {
         Projectile projectile = modProjectile.Projectile;
         var player = Main.player[projectile.owner];
-        //不存在buff
         if (!player.HasBuff<TBuff>()) {
             projectile.active = false;
-            //projectile.Kill();
             return false;
         } else {
-            //player.AddBuff(ModContent.BuffType<TBuff>(), 999);
             return orig?.Invoke(modProjectile) ?? false;
         }
     }

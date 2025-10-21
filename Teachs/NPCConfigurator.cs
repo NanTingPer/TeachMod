@@ -6,19 +6,19 @@ using Terraria.ModLoader;
 
 namespace TeachMod.Teachs;
 
-public class NPCUtil(ModNPC npc)
+public class NPCConfigurator(ModNPC npc)
 {
     private readonly ModNPC thisNPC = npc;
 
-    public static NPCUtil CreateUtil(ModNPC npc)
+    public static NPCConfigurator CreateUtil(ModNPC npc)
     {
-        return new NPCUtil(npc);
+        return new NPCConfigurator(npc);
     }
 
     /// <summary>
     /// NPC帧图数量 <see cref="Main.npcFrameCount"/>
     /// </summary>
-    public NPCUtil FrameCount(int frameCount)
+    public NPCConfigurator FrameCount(int frameCount)
     {
         Main.npcFrameCount[thisNPC.Type] = frameCount;
         return this;
@@ -27,7 +27,7 @@ public class NPCUtil(ModNPC npc)
     /// <summary>
     /// 额外帧数量 <see cref="NPCID.Sets.ExtraFramesCount"/>
     /// </summary>
-    public NPCUtil ExtraFramesCount(int extraCount)
+    public NPCConfigurator ExtraFramesCount(int extraCount)
     {
         NPCID.Sets.ExtraFramesCount[thisNPC.Type] = extraCount;
         return this;
@@ -36,7 +36,7 @@ public class NPCUtil(ModNPC npc)
     /// <summary>
     /// 攻击帧数量 <see cref="NPCID.Sets.AttackFrameCount"/>
     /// </summary>
-    public NPCUtil AttackFrameCount(int frameCount)
+    public NPCConfigurator AttackFrameCount(int frameCount)
     {
         NPCID.Sets.AttackFrameCount[thisNPC.Type] = frameCount;
         return this;
@@ -45,7 +45,7 @@ public class NPCUtil(ModNPC npc)
     /// <summary>
     /// 攻击类型 <see cref="NPCID.Sets.AttackType"/>
     /// </summary>
-    public NPCUtil AttackType(int type)
+    public NPCConfigurator AttackType(int type)
     {
         NPCID.Sets.AttackType[thisNPC.Type] = type;
         return this;
@@ -54,7 +54,7 @@ public class NPCUtil(ModNPC npc)
     /// <summary>
     /// 攻击类型 <see cref="NPCID.Sets.AttackType"/>
     /// </summary>
-    public NPCUtil AttackType(AttackTypes type)
+    public NPCConfigurator AttackType(AttackTypes type)
     {
         NPCID.Sets.AttackType[thisNPC.Type] = (int)type;
         return this;
@@ -63,7 +63,7 @@ public class NPCUtil(ModNPC npc)
     /// <summary>
     /// 攻击间隔 <see cref="NPCID.Sets.AttackTime"/>
     /// </summary>
-    public NPCUtil AttackTime(int time)
+    public NPCConfigurator AttackTime(int time)
     {
         NPCID.Sets.AttackTime[thisNPC.Type] = time;
         return this;
@@ -72,7 +72,7 @@ public class NPCUtil(ModNPC npc)
     /// <summary>
     /// 攻击概率 <see cref="NPCID.Sets.AttackAverageChance"/>
     /// </summary>
-    public NPCUtil AttackAverageChance(int time)
+    public NPCConfigurator AttackAverageChance(int time)
     {
         NPCID.Sets.AttackAverageChance[thisNPC.Type] = time;
         return this;
@@ -81,7 +81,7 @@ public class NPCUtil(ModNPC npc)
     /// <summary>
     /// 威胁半径 <see cref="NPCID.Sets.DangerDetectRange"/>
     /// </summary>
-    public NPCUtil DangerDetectRange(int range)
+    public NPCConfigurator DangerDetectRange(int range)
     {
         NPCID.Sets.DangerDetectRange[thisNPC.Type] = range;
         return this;
@@ -90,7 +90,7 @@ public class NPCUtil(ModNPC npc)
     /// <summary>
     /// 帽子Y偏移 <see cref="NPCID.Sets.HatOffsetY"/>
     /// </summary>
-    public NPCUtil HatOffsetY(int offset)
+    public NPCConfigurator HatOffsetY(int offset)
     {
         NPCID.Sets.HatOffsetY[thisNPC.Type] = offset;
         return this;
@@ -99,7 +99,7 @@ public class NPCUtil(ModNPC npc)
     /// <summary>
     /// 法术攻击光芒颜色 <see cref="NPCID.Sets.MagicAuraColor"/>
     /// </summary>
-    public NPCUtil MagicAuraColor(Color color)
+    public NPCConfigurator MagicAuraColor(Color color)
     {
         NPCID.Sets.MagicAuraColor[thisNPC.Type] = color;
         return this;
@@ -109,7 +109,7 @@ public class NPCUtil(ModNPC npc)
     /// 添加到TownNPC图鉴 <see cref="NPCID.Sets.TownNPCBestiaryPriority"/>
     /// </summary>
     /// <returns></returns>
-    public NPCUtil AddTownNPC()
+    public NPCConfigurator AddTownNPC()
     {
         NPCID.Sets.TownNPCBestiaryPriority.Add(thisNPC.Type);
         return this;
@@ -118,7 +118,7 @@ public class NPCUtil(ModNPC npc)
     /// <summary>
     /// 设置NPC图鉴绘制状态 <see cref="NPCID.Sets.NPCBestiaryDrawOffset"/>
     /// </summary>
-    public NPCUtil NPCBestiaryDrawOffset(NPCID.Sets.NPCBestiaryDrawModifiers nbm)
+    public NPCConfigurator NPCBestiaryDrawOffset(NPCID.Sets.NPCBestiaryDrawModifiers nbm)
     {
         NPCID.Sets.NPCBestiaryDrawOffset.Add(thisNPC.Type, nbm);
         return this;
@@ -127,7 +127,7 @@ public class NPCUtil(ModNPC npc)
     /// <summary>
     /// 设置环境爱好 <see cref="ModNPC.NPC.Happoncess"/>
     /// </summary>
-    public NPCUtil SetBiomeAffection<T>(AffectionLevel level) where T : class, IShoppingBiome, ILoadable
+    public NPCConfigurator SetBiomeAffection<T>(AffectionLevel level) where T : class, IShoppingBiome, ILoadable
     {
         thisNPC.NPC.Happiness.SetBiomeAffection<T>(level);
         return this;
@@ -136,7 +136,7 @@ public class NPCUtil(ModNPC npc)
     /// <summary>
     /// 设置环境爱好 <see cref="ModNPC.NPC.Happoncess"/>
     /// </summary>
-    public NPCUtil SetBiomeAffection(IShoppingBiome isb, AffectionLevel level)
+    public NPCConfigurator SetBiomeAffection(IShoppingBiome isb, AffectionLevel level)
     {
         thisNPC.NPC.Happiness.SetBiomeAffection(isb, level);
         return this;
@@ -146,7 +146,7 @@ public class NPCUtil(ModNPC npc)
     /// 设置NPC爱好 <see cref="ModNPC.NPC.Happoncess"/>
     /// <para> 模组NPC请使用这个 </para>
     /// </summary>
-    public NPCUtil SetNPCAffection<T>(AffectionLevel level) where T : ModNPC
+    public NPCConfigurator SetNPCAffection<T>(AffectionLevel level) where T : ModNPC
     {
         thisNPC.NPC.Happiness.SetNPCAffection<T>(level);
         return this;
@@ -156,7 +156,7 @@ public class NPCUtil(ModNPC npc)
     /// 设置NPC爱好 <see cref="ModNPC.NPC.Happoncess"/>
     /// <para> <see cref="NPCID"/> </para>
     /// </summary>
-    public NPCUtil SetNPCAffection(int npcid, AffectionLevel level)
+    public NPCConfigurator SetNPCAffection(int npcid, AffectionLevel level)
     {
         thisNPC.NPC.Happiness.SetNPCAffection(npcid, level);
         return this;
