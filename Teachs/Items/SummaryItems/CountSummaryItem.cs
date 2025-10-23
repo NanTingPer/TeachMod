@@ -10,8 +10,9 @@ using Terraria.ModLoader;
 
 namespace TeachMod.Teachs.Items.SummaryItems;
 
-public class CountSummaryItem : SummonItem<CountSummaryProjectile, CountSummaryBuff>
+public class CountSummaryItem : SummonItem<CountSummaryProjectile, CountSummaryBuff, CountSummaryItem>
 {
+    public override string Texture => "Terraria/Images/Projectile_" + ProjectileID.EmpressBlade;
     public override void SetDefaults()
     {
         Item.damage = 20;
