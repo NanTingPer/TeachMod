@@ -20,7 +20,7 @@ public class UIElement
     {
         get
         {
-            var mxy = Vector2.Transform(Main.MouseScreen, Main.GameViewMatrix.ZoomMatrix/*Main.UIScaleMatrix*//* Main.GameViewMatrix.ZoomMatrix*/); //鼠标位置
+            var mxy = Vector2.Transform(Main.MouseScreen, Matrix.Identity/*Main.GameViewMatrix.ZoomMatrix*//*Main.UIScaleMatrix*//* Main.GameViewMatrix.ZoomMatrix*/); //鼠标位置
             var mwh = new Vector2(2, 2); //鼠标大小
             return new Rectangle((int)mxy.X, (int)mxy.Y, (int)mwh.X, (int)mwh.Y);
         }
@@ -215,10 +215,12 @@ public class UIElement
     /// </summary>
     public bool IsMouseHover()
     {
+        if (Name == "EntityElementNodes")
+            _ = 1;
         var matrix = Main.UIScaleMatrix;
         var xy = Vector2.Transform(new Vector2(LeftPadding, TopPadding), matrix);
         var wh = Vector2.Transform(new Vector2(Width, Height), matrix);
-        var mxy = Vector2.Transform(Main.MouseScreen, Main.GameViewMatrix.ZoomMatrix); //鼠标位置
+        var mxy = Vector2.Transform(Main.MouseScreen, /*Main.GameViewMatrix.ZoomMatrix*/Matrix.Identity); //鼠标位置
         var mwh = new Vector2(2, 2); //鼠标大小
         return Collision.CheckAABBvAABBCollision(xy, wh, mxy, mwh);
     }
@@ -233,13 +235,7 @@ public class UIElement
         MouseHover.Invoke(new UIMouseEventArgs(this, Main.MouseScreen));
 
         //通知所有子集
-        for (int i = 0; i < elements.Count; i++) {
-            var forElement = elements[i];
-            if (forElement.active == false || forElement.IsMouseHover() == false) {
-                continue;
-            }
-            forElement.MouseHover.Invoke(new UIMouseEventArgs(forElement, Main.MouseScreen));
-        }
+        ForElementsActiveAndMouseHover(u => u.MouseHover.Invoke(new UIMouseEventArgs(u, Main.MouseScreen)));
     }
 
     /// <summary>
@@ -248,6 +244,19 @@ public class UIElement
     internal void InvokMouseClick()
     {
         MouseClick.Invoke(new UIMouseEventArgs(this, Main.MouseScreen));
+        //通知所有子集
+        ForElementsActiveAndMouseHover(u => u.MouseClick.Invoke(new UIMouseEventArgs(u, Main.MouseScreen)));
+    }
+    
+    private void ForElementsActiveAndMouseHover(Action<UIElement> action)
+    {
+        for (int i = 0; i < elements.Count; i++) {
+            var forElement = elements[i];
+            if (forElement.active == false || forElement.IsMouseHover() == false) {
+                continue;
+            }
+            action.Invoke(forElement);
+        }
     }
 
     public UIElement Append(UIElement element)

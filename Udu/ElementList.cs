@@ -9,23 +9,21 @@ using Terraria.GameContent;
 namespace TeachMod.Udu;
 
 
-public class ListUI<Entity> : UIElement where Entity : class
+public class ElementList<Entity> : UIElement where Entity : class
 {
-    public class ItemClickEventArgs(Entity entity, ListUI<Entity> entitys, Vector2 pos)
-    {
-        public Entity CuEntity { get; init; } = entity;
-        public ListUI<Entity> Entitys { get; init; } = entitys;
-        public Vector2 Position { get; init; } = pos;
-    }
     //public ListUI(Func<Entity, string> drawfunc)
     //{
 
     //}
-    public ListUI()
+    public ElementList()
     {
         MouseClick += ItemClickEventAction;
     }
 
+    /// <summary>
+    /// 当前单个对象的大小
+    /// </summary>
+    public Vector2 ItemSize { get; private set; }
     public event Action<ItemClickEventArgs>? ItemClickEvent;
     /// <summary>
     /// 本UI承载的全部对象
@@ -34,27 +32,31 @@ public class ListUI<Entity> : UIElement where Entity : class
     /// <summary>
     /// 每个元素的宽度
     /// </summary>
-    public int ItemWidth { get; set; }
+    private int ItemWidth => (int)ItemSize.X;
     /// <summary>
     /// 每个元素的高度
     /// </summary>
-    public int ItemHeight { get; set; }
+    private int ItemHeight => (int)ItemSize.Y;
     /// <summary>
     /// 每个元素垂直方向的间距
     /// </summary>
     public int ItemVerticalSpacing { get; set; }
 
     private float height = 0f;
+
+    //public override float Height { get { _ = field; return height; } set; }
     /// <summary>
-    /// 本UI当前的高度
+    /// 本UI当前的高度 每次<see cref="Append(Entity)"/> or <see cref="Remove(Entity)"/> 都会重计算
     /// </summary>
-    public override float Height { get { _ = field; return height; } set; }
+    public override float Height { get => height; set => height = value; }
 
     private float width = 0f;
+    //public new float Width { get {/* _ = field;*/ return width; } private set => width = value; }
+
     /// <summary>
     /// 本UI当前的宽度
     /// </summary>
-    public override float Width { get {/* _ = field;*/ return width; } set => width = value; }
+    public override float Width { get => width; set => width = value; }
 
     /// <summary>
     /// <code>
@@ -89,10 +91,20 @@ public class ListUI<Entity> : UIElement where Entity : class
     /// 往实体列表添加内容
     /// <para> 添加后会重新计算此元素的高度 </para>
     /// </summary>
-    public ListUI<Entity> Append(Entity entity)
+    public ElementList<Entity> Append(Entity entity)
     {
         entitys.Add(entity);
+
+        #region 计算单个元素的宽高
+        var entitySize = FontAssets.MouseText.Value.MeasureString(entity.ToString());
+        var newSize = Vector2.Zero;
+        newSize.X = entitySize.X > ItemSize.X ? entitySize.X : ItemSize.X;
+        newSize.Y = entitySize.Y > ItemSize.Y ? entitySize.Y : ItemSize.Y;
+        ItemSize = newSize;
+        #endregion
+
         height = ItemHeight * entitys.Count; //高度
+        width = newSize.X;
         return this;
     }
 
@@ -100,7 +112,7 @@ public class ListUI<Entity> : UIElement where Entity : class
     /// 删除实体列表中的元素
     /// <para> 删除后会重写计算此元素的宽度 </para>
     /// </summary>
-    public ListUI<Entity> Remove(Entity entity)
+    public ElementList<Entity> Remove(Entity entity)
     {
         entitys.Remove(entity);
         height = ItemHeight * entitys.Count;
@@ -117,7 +129,7 @@ public class ListUI<Entity> : UIElement where Entity : class
     }
 
     /// <summary>
-    /// 鼠标是否点击元素
+    /// 鼠标是否点击元素（调用此元素的点击事件）
     /// </summary>
     private Entity? IsMouseClickItem(Vector2 mousePosition)
     {
@@ -185,5 +197,14 @@ public class ListUI<Entity> : UIElement where Entity : class
         var origOffset = new Vector2(LeftPadding, TopPadding);
 
         return origOffset + itemOffset ;//origOffset + itemOffset;
+    }
+    public class ItemClickEventArgs(Entity entity, ElementList<Entity> entitys, Vector2 pos)
+    {
+        /// <summary>
+        /// 当前被点击的实体
+        /// </summary>
+        public Entity CuEntity { get; init; } = entity;
+        public ElementList<Entity> Entitys { get; init; } = entitys;
+        public Vector2 Position { get; init; } = pos;
     }
 }
