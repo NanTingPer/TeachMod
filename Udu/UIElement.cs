@@ -231,6 +231,15 @@ public class UIElement
     internal void InvokMouseHover()
     {
         MouseHover.Invoke(new UIMouseEventArgs(this, Main.MouseScreen));
+
+        //通知所有子集
+        for (int i = 0; i < elements.Count; i++) {
+            var forElement = elements[i];
+            if (forElement.active == false || forElement.IsMouseHover() == false) {
+                continue;
+            }
+            forElement.MouseHover.Invoke(new UIMouseEventArgs(forElement, Main.MouseScreen));
+        }
     }
 
     /// <summary>
