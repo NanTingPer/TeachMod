@@ -17,77 +17,33 @@ public class UITestSystem : ModSystem
     {
         Clp = ModContent.Request<Texture2D>("TeachMod/Udu/School/clp", AssetRequestMode.ImmediateLoad);
         AlphaTestEffect = ModContent.Request<Effect>("TeachMod/Effect/Content/AlphaTestEffect", AssetRequestMode.ImmediateLoad);
-        var elementUpIndexTestUI = new UIElement()
-        {
-            Active = true,
-            Height = 400,
-            Width = 300,
-            IsPanle = true
-        };
-        elementUpIndexTestUI.MouseHover += (a) => {
-            UIElement @this = a.Element;
-            if (Main.mouseLeft && Main.mouseLeftRelease) {
-                mouseOffset = @this.MouseOffset;
-            } else if (Main.mouseLeft) {
-                //先计算当前鼠标位置与原点位置的差
-                float elSubMouseY = Main.MouseScreen.Y - mouseOffset.Y;
-                float elSubMouseX = Main.MouseScreen.X - mouseOffset.X;
 
-                a.Element.TopPadding = elSubMouseY;
-                a.Element.LeftPadding = elSubMouseX;
-            }
-        };
-        
-        var element = new UIElement()
+        var eeent = new EntityElement()
         {
-            Active = true,
-            Height = 200,
-            Width = 200,
-            IsPanle = true
+            Height = Main.screenHeight,
+            Width = Main.screenWidth,
+            IsPanle = true,
+            Active = true
         };
-        
-        var listUi = new ListUI<string>()
-        {
-            ItemHeight = 50,
-            ItemWidth = 60,
-            Width = 100,
-            Active = true,
-            Name = "ListUI",
-            drawSelfPost = (u, sb) => {
-                sb.End();
-                sb.Begin(SpriteSortMode.Deferred, BlendState.Additive, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null, Matrix.Identity);
-                sb.Draw(u.Texture, new Rectangle(u.MouseRectangle.X, u.MouseRectangle.Y, 10, 10), Color.Aqua);
-                sb.End();
-                sb.Begin();
-            }
-        };
-        
-        listUi.ItemClickEvent += (ar) => {
-            Mod.Logger.Debug($"Click : {ar.CuEntity}");
-            //ar.Entitys.Parent.Active = false;
-        };
-        
-        listUi
-            .Append("第一个元素")
-            .Append("第二个元素")
-            .Append("第三个元素")
-            .Append("第四个元素")
-            .Append("第五个元素")
-            .Append("第六个元素")
-            ;
-        
-        element.Append(listUi);
+        eeent.Append(new TestNode());
 
-        //_ = Main.screenHeight;
+        #region 拖动示例
+        //elementUpIndexTestUI.MouseHover += (a) => {
+        //    UIElement @this = a.Element;
+        //    if (Main.mouseLeft && Main.mouseLeftRelease) {
+        //        mouseOffset = @this.MouseOffset;
+        //    } else if (Main.mouseLeft) {
+        //        //先计算当前鼠标位置与原点位置的差
+        //        float elSubMouseY = Main.MouseScreen.Y - mouseOffset.Y;
+        //        float elSubMouseX = Main.MouseScreen.X - mouseOffset.X;
         //
-        //var uiel = new UIElement()
-        //{
-        //    Width = Main.screenWidth,
-        //    Height = Main.screenHeight,
-        //    IsPanle = false,
-        //    drawSelfPost = DrawPost,
-        //    Active = true
+        //        a.Element.TopPadding = elSubMouseY;
+        //        a.Element.LeftPadding = elSubMouseX;
+        //    } else if (Main.mouseLeftRelease) {
+        //        mouseOffset = Vector2.Zero;
+        //    }
         //};
+        #endregion
         base.Load();
     }
 
