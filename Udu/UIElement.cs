@@ -171,7 +171,7 @@ public class UIElement
                     stack.Push(rearEl);
             }
             cuelement.DrawSelf(spriteBatch);
-            cuelement.drawSelfPost?.Invoke(cuelement, spriteBatch);
+            cuelement.DrawSelfPost?.Invoke(cuelement, spriteBatch);
         }
         spriteBatch.End();
 
@@ -188,7 +188,7 @@ public class UIElement
     /// 当调用完对象的DrawSelf后会调用此委托
     /// <para>当方法退出时应当保持 <see cref="SpriteBatch.Begin()"/></para>
     /// </summary>
-    public Action<UIElement, SpriteBatch>? drawSelfPost;
+    public event Action<UIElement, SpriteBatch>? DrawSelfPost;
     /// <summary>
     /// 由<see cref="Draw(SpriteBatch)"/>调用
     /// <para> 当此Element不为顶级容器时调用此方法 </para>

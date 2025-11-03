@@ -9,7 +9,7 @@
     <LangVersion>preview</LangVersion>
 	</PropertyGroup>
 	<ItemGroup>
-	  <AdditionalFiles Remove="Effect\AlphaTestEffect.FX" />
+	  <AdditionalFiles Remove="Graphics\AlphaTestEffect.FX" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Teachs\TeachUtils\" />
