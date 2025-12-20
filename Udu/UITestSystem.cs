@@ -1,10 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System.Security.Cryptography.X509Certificates;
-using TeachMod.Extensions;
-using TeachMod.Graphics;
-using TeachMod.Textures;
-using Terraria;
+﻿using Microsoft.Xna.Framework.Graphics;
 using Terraria.ModLoader;
 
 namespace TeachMod.Udu;
@@ -13,14 +7,14 @@ public class UITestSystem : ModSystem
 {
     public override void Load()
     {
-        var testUIElement = new UIElement()
-        {
-            Active = true,
-            Height = 100,
-            Width = 100 
-        };
+        //var testUIElement = new UIElement()
+        //{
+        //    Active = true,
+        //    Height = 100,
+        //    Width = 100 
+        //};
 
-        testUIElement.DrawSelfPost += TestUIElement_DrawSelfPost;
+        //testUIElement.DrawSelfPost += TestUIElement_DrawSelfPost;
 
         base.Load();
     }

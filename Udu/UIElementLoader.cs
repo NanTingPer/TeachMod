@@ -51,6 +51,7 @@ public static class UIElementLoader
     /// </summary>
     private static void DoUpdateHook(DoUpate orig, Main main, ref GameTime gameTime)
     {
+        return;
         orig.Invoke(main, ref gameTime);
         //遍历全部UI 为顶层UI发送事件
         for (int i = _elements.Count - 1; i >= 0; i--) {
@@ -122,10 +123,9 @@ public static class UIElementLoader
         var doUpdate = mainType.GetMethod("DoUpdate", BindingFlags.NonPublic | BindingFlags.Instance);
         var drawCapture = mainType.GetMethod("DrawCapture", BindingFlags.Public | BindingFlags.Instance);
         var doDraw = mainType.GetMethod("DoDraw", BindingFlags.NonPublic | BindingFlags.Instance);
+        //MonoModHooks.Add(drawCapture, new DrawCaptureAction(DrawCaptureHook));
         //MonoModHooks.Add(doUpdate, new DoUpdateAction(DoUpdateHook));
-        MonoModHooks.Add(drawCapture, new DrawCaptureAction(DrawCaptureHook));
-        MonoModHooks.Add(doUpdate, new DoUpdateAction(DoUpdateHook));
-        MonoModHooks.Add(doDraw, new DoDrawAction(DoDrawHook));
+        //MonoModHooks.Add(doDraw, new DoDrawAction(DoDrawHook));
     }
 
     /// <summary>
