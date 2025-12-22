@@ -48,9 +48,12 @@ public class TeachModSystemLoader
     private static void DoUpdate(DelegateDoUpdate orig, Main main, ref GameTime gameTime)
     {
         foreach (var item in teachModSystems) {
-            try { item.DoUpdate(main, ref gameTime); } catch { }
+            try { item.PreUpdate(main, ref gameTime); } catch { }
         }
         orig.Invoke(main, ref gameTime);
+        foreach (var item in teachModSystems) {
+            try { item.PostUpdate(main, ref gameTime); } catch { }
+        }
     }
     #endregion
 
@@ -87,7 +90,12 @@ public abstract class TeachModSystem : ModSystem
 
     }
 
-    public virtual void DoUpdate(Main main, ref GameTime gametime)
+    public virtual void PreUpdate(Main main, ref GameTime gametime)
+    {
+
+    }
+
+    public virtual void PostUpdate(Main mian, ref GameTime gameTime)
     {
 
     }

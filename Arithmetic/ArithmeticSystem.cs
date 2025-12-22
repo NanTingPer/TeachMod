@@ -24,7 +24,7 @@ public class ArithmeticSystem : TeachModSystem
         }
     }
 
-    public override void DoUpdate(Main main, ref GameTime gametime)
+    public override void PreUpdate(Main main, ref GameTime gametime)
     {
         if (drawArithmentic == false) return;
         foreach (var item in pointList) {

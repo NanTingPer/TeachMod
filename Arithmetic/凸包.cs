@@ -9,7 +9,7 @@ namespace TeachMod.Arithmetic;
 
 public class 凸包 : TeachModSystem
 {
-    public static bool drawArithmentic = true;
+    public static bool drawArithmentic = false;
     public static List<EntityPoint> pointList = [];
 
     public 凸包()
@@ -53,7 +53,7 @@ public class 凸包 : TeachModSystem
     private readonly List<EntityPoint> 凸包点 = [];
     private EntityPoint 候选点;
     private static Texture2D lineColor;
-    public override void DoUpdate(Main main, ref GameTime gametime)
+    public override void PreUpdate(Main main, ref GameTime gametime)
     {
         if (drawArithmentic == false) return;
         foreach (var item in pointList) {
