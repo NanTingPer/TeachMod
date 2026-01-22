@@ -10,7 +10,7 @@ internal class ArithmeticUtils
 {
     public static void DrawLine(SpriteBatch spriteBatch, Vector2 start, Vector2 end, Color colorStart, Color colorEnd, float width)
     {
-        spriteBatch.Begin(null, null); //aaa
+        spriteBatch.SafeBegin(null, null); //aaa
         float num = Vector2.Distance(start, end);
         Vector2 vector = (end - start) / num;
         Vector2 vector2 = start;

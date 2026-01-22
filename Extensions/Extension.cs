@@ -16,7 +16,7 @@ public static partial class Extension
     /// <param name="sbatch"></param>
     /// <param name="eff"></param>
     /// <param name="matrix"></param>
-    public static void Begin(this Microsoft.Xna.Framework.Graphics.SpriteBatch sbatch, Effect eff, Matrix? matrix = null)
+    public static void SafeBegin(this Microsoft.Xna.Framework.Graphics.SpriteBatch sbatch, Effect eff, Matrix? matrix = null)
     {
         if (matrix == null)
             matrix = Matrix.Identity;
@@ -26,6 +26,17 @@ public static partial class Extension
         sbatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap,DepthStencilState.None, RasterizerState.CullNone, eff, matrix.Value);
     }
 
+    public static void SafeBegin(this Microsoft.Xna.Framework.Graphics.SpriteBatch sbatch)
+    {
+        SafeBegin(sbatch, null ,null);
+    }
+
+    public static void SafeEnd(this Microsoft.Xna.Framework.Graphics.SpriteBatch sbatch)
+    {
+        if (sbatch.IsCall()) {
+            sbatch.End();
+        }
+    }
 
     /// <summary>
     /// 判断画笔是否已经被<see cref="Microsoft.Xna.Framework.Graphics.SpriteBatch.Begin()"/>

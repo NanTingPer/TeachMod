@@ -50,6 +50,7 @@ public class TeachModSystemLoader
         foreach (var item in teachModSystems) {
             try { item.PreUpdate(main, ref gameTime); } catch { }
         }
+        return;
         orig.Invoke(main, ref gameTime);
         foreach (var item in teachModSystems) {
             try { item.PostUpdate(main, ref gameTime); } catch { }
@@ -69,7 +70,7 @@ public class TeachModSystemLoader
         foreach (var item in teachModSystems) {
             try { item.PreDoDraw(_spriteBatch, main, gametime); } catch { }
         }
-        orig.Invoke(main, gametime);
+        //orig.Invoke(main, gametime);
         foreach (var item in teachModSystems) {
             try { item.PostDoDraw(_spriteBatch, main, gametime); } catch { }
         }
@@ -78,13 +79,30 @@ public class TeachModSystemLoader
     #endregion
 }
 
+/// <summary>
+/// 此System继承至<see cref="ModSystem"/>，被<see cref="TeachModSystemLoader"/>加载
+/// <br/> 包含许多顶层的钩子，如<see cref="PreDoDraw(SpriteBatch, Main, GameTime)"/>
+/// <br/> 其在原始逻辑执行之前被执行
+/// </summary>
 public abstract class TeachModSystem : ModSystem
 {
+    /// <summary>
+    /// <paramref name="spriteBatch"/>的状态为<see cref="SpriteBatch.End()"/> 方法结束后请保持
+    /// </summary>
+    /// <param name="spriteBatch"></param>
+    /// <param name="main"></param>
+    /// <param name="gameTime"></param>
     public virtual void PreDoDraw(SpriteBatch spriteBatch, Main main, GameTime gameTime)
     {
 
     }
 
+    /// <summary>
+    /// <paramref name="spriteBatch"/>的状态为<see cref="SpriteBatch.End()"/> 方法结束后请保持
+    /// </summary>
+    /// <param name="spriteBatch"></param>
+    /// <param name="main"></param>
+    /// <param name="gameTime"></param>
     public virtual void PostDoDraw(SpriteBatch spriteBatch, Main main, GameTime gameTime)
     {
 
