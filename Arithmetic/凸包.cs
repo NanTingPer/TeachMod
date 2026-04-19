@@ -64,7 +64,7 @@ public class 凸包 : TeachModSystem
 
     private readonly List<EntityPoint> 凸包点 = []; // 全部凸包点
     private static Texture2D lineColor; // 凸包点的连线
-    private Func<System.Collections.IEnumerator>? enumerator = null;
+    private 携程管理 enumerator = null;
     public override void PreUpdate(Main main, ref GameTime gametime) // 更新目标点
     {
         if (drawArithmentic == false) return;
@@ -89,7 +89,7 @@ public class 凸包 : TeachModSystem
         // |- 如果当前点不等于起始点，加入到合集
         // do while的结束条件为 (currentPoint != startPoint && 凸包点.Count <= pointList.Count)
 
-        enumerator ??= 携程.Add(NewOrig, TimeSpan.FromSeconds(0.25f), true);
+        enumerator ??= 协程.Add(NewOrig, TimeSpan.FromSeconds(0.25f), true);
     }
 
     private System.Collections.IEnumerator NewOrig()
@@ -114,7 +114,6 @@ public class 凸包 : TeachModSystem
         凸包点.Clear();
         yield break;
     }
-
 
 
     private void Orig()

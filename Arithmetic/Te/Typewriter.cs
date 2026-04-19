@@ -7,28 +7,27 @@ using Terraria.GameContent;
 
 namespace TeachMod.Arithmetic.Te;
 
+/// <summary>
+/// 打字机 非协程
+/// </summary>
 public class Typewriter : TeachModSystem
 {
+    private static bool IsDraw = false;
     public readonly static StringBuilder drawString = new StringBuilder("Hello World!");
     private int timer = 0;
-    private bool IsViewShu = true;
-    public static int count = 0;
+    private Vector2 drawPos = new Vector2(100, 100);
     public override void PostDoDraw(SpriteBatch spriteBatch, Main main, GameTime gameTime)
     {
+        if(!IsDraw) return;
+
         spriteBatch.GraphicsDevice.Clear(Color.Black);
         timer++;
-        int length = drawString.Length;                                                 //文本长度
-        var DrawPos = new Vector2(100, 100);
+        int length = drawString.Length;
         var viewCount = timer / 10 % (length + 1);                          //显示数量
         string draw = drawString.ToString()[0 ..viewCount];                      //真实显示的文本
 
-        #region 最后的 | 符号
-        if (IsViewShu) draw += "I";
-        if (timer % 30 == 0) IsViewShu = false;
-        if (timer % 60 == 0) IsViewShu = true;
-        #endregion
         spriteBatch.SafeBegin();
-        ReLogic.Graphics.DynamicSpriteFontExtensionMethods.DrawString(spriteBatch, FontAssets.MouseText.Value, draw, DrawPos, Color.Red, 0f, Vector2.Zero, 5f, SpriteEffects.None, 1f);
+        ReLogic.Graphics.DynamicSpriteFontExtensionMethods.DrawString(spriteBatch, FontAssets.MouseText.Value, draw, drawPos, Color.Red, 0f, Vector2.Zero, 5f, SpriteEffects.None, 1f);
         spriteBatch.SafeEnd();
         base.PostDoDraw(spriteBatch, main, gameTime);
     }
